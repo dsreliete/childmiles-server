@@ -8,6 +8,10 @@ const mongoose = require('mongoose');
 const config = require('./config');
 const indexRouter = require('./routes/indexRouter');
 const childRouter = require('./routes/childRouter');
+const familyRouter = require('./routes/familyRouter');
+const categoryRouter = require('./routes/categoryRouter');
+const awardRouter = require('./routes/awardRouter');
+const penaltyRouter = require('./routes/penaltyRouter');
 
 const url = config.mongoUrl;
 const connect = mongoose.connect(url, {
@@ -35,6 +39,10 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use('/', indexRouter);
 app.use('/child', childRouter);
+app.use('/family', familyRouter);
+app.use('/category', categoryRouter);
+app.use('/award', awardRouter);
+app.use('/penalty', penaltyRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
