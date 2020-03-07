@@ -3,7 +3,7 @@
  */
 
 var app = require('./app');
-var debug = require('debug')('nucampsiteserver:server');
+var debug = require('debug')('childmiles-server:server');
 var http = require('http');
 
 /**
