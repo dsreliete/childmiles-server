@@ -2,12 +2,24 @@ const express = require('express');
 const createError = require('http-errors');
 const path = require('path');
 const morgan = require('morgan');
-const bodyParser = require('body-parser');
-// const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 // const passport = require('passport');
 
+const config = require('./config');
 const indexRouter = require('./routes/indexRouter');
 const childRouter = require('./routes/childRouter');
+
+const url = config.mongoUrl;
+const connect = mongoose.connect(url, {
+  useCreateIndex: true,
+  useFindAndModify: false,
+  useNewUrlParser: true, 
+  useUnifiedTopology: true
+});
+
+connect.then(() => console.log('Connected correctly to server \o/'), 
+    err => console.log(err)
+);
 
 const app = express();
 
