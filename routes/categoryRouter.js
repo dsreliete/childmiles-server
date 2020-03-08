@@ -40,4 +40,38 @@ categoryRouter.route('/')
     .catch(err => next(err));
 });
 
+categoryRouter.route('/:categoryId')
+.get((req, res, next) => {
+    Category.findById(req.params.categoryId)
+    .then(category => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(category);
+    })
+    .catch(err => next(err));
+})
+.post((req, res, next) => {
+    res.statusCode = 403;
+    res.end(`POST operation not supported on /categories/${req.params.categoryId}`); 
+})
+.put((req, res, next) => {
+    Category.findByIdAndUpdate(req.params.categoryId, {
+        $set: req.body
+    }, { new: true })
+    .then(category => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(category);
+    })
+    .catch(err => next(err));
+})
+.delete((req, res, next) => {
+    Category.findByIdAndDelete(req.params.categoryId)
+    .then(response => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(response);
+    })
+    .catch(err => next(err));
+});
 module.exports = categoryRouter;

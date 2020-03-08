@@ -40,4 +40,39 @@ awardRouter.route('/')
     .catch(err => next(err));
 });
 
+awardRouter.route('/:awardId')
+.get((req, res, next) => {
+    Award.findById(req.params.awardId)
+    .then(award => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(award);
+    })
+    .catch(err => next(err));
+})
+.post((req, res, next) => {
+    res.statusCode = 403;
+    res.end(`POST operation not supported on /awards/${req.params.awardId}`); 
+})
+.put((req, res, next) => {
+    Award.findByIdAndUpdate(req.params.awardId, {
+        $set: req.body
+    }, { new: true })
+    .then(award => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(award);
+    })
+    .catch(err => next(err));
+})
+.delete((req, res, next) => {
+    Award.findByIdAndDelete(req.params.awardId)
+    .then(response => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(response); 
+    })
+    .catch(err => next(err));
+});
+
 module.exports = awardRouter;

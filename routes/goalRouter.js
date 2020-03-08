@@ -41,4 +41,40 @@ goalRouter.route('/')
     .catch(err => next(err));
 });
 
+goalRouter.route('/:goalId')
+.get((req, res, next) => {
+    Goal.findById(req.params.goalId)
+    .populate('category')
+    .then(goal => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(goal);
+    })
+    .catch(err => next(err));
+})
+.post((req, res, next) => {
+    res.statusCode = 403;
+    res.end('PUT operation not supported on /goal/goalId');
+})
+.put((req, res, next) => {
+    Goal.findByIdAndUpdate(req.params.goalId, {
+        $set: req.body
+    }, { new: true })
+    .then(goal => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(goal);
+    })
+    .catch(err => next(err));
+})
+.delete((req, res, next) => {
+    Goal.findByIdAndDelete(req.params.goalId)
+    .then(response => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(response);
+    })
+    .catch(err => next(err));
+});
+
 module.exports = goalRouter;
