@@ -13,6 +13,7 @@ const categoryRouter = require('./routes/categoryRouter');
 const awardRouter = require('./routes/awardRouter');
 const penaltyRouter = require('./routes/penaltyRouter');
 const goalRouter = require('./routes/goalRouter');
+const associationRouter = require('./routes/associationRouter');
 
 const url = config.mongoUrl;
 const connect = mongoose.connect(url, {
@@ -45,6 +46,7 @@ app.use('/categories', categoryRouter);
 app.use('/awards', awardRouter); 
 app.use('/penalties', penaltyRouter);
 app.use('/goals', goalRouter);
+app.use('/associations', associationRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
