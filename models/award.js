@@ -2,19 +2,16 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const awardsSchema = new Schema({
-	name: {
+	description: {
 		type: String,
 		required: true,
 		unique: true
 	},
-	image: {
-		type: String,
-		default: ''
-	},
-	familyName: {
-		type: String,
-		required: true,
-		unique: true
+	point: {
+		type: Number,
+        min: 0,
+        max: 1000,
+        required: true
 	}
 },
 {

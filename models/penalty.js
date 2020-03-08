@@ -2,11 +2,6 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const penaltySchema = new Schema({
-    name: {
-        type: String,
-        required: true,
-        unique: true
-    },
     description: {
         type: String,
         required: true,
@@ -14,8 +9,8 @@ const penaltySchema = new Schema({
     },
     point: {
         type: Number,
-        min: 1,
-        max: 1000,
+        min: -1000,
+        max: 1,
         required: true
     }
     },
