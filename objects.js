@@ -242,141 +242,69 @@ const associationArray = [
 const realizationArray = [
     {
         id: 1,
-        dateTime: "date and time",
-        actionType: "pontoExtra",
         child: {
             id: 1,
             name: "Sheldon",
             dtNasc: "01-25-2014",
             gender: "male"
         }, 
-        point : 1,
-        pointType: "green"
+        actions: [{
+            type: "pontoExtraPositivo",
+            point : 1,
+            pointType: "green"
+        }, {
+            type: "pontoExtraNegativo",
+            point : -1,
+            pointType: "red"
+        }, {
+            type: "bonificar",
+            point : 35,
+            pointType: "green",
+            goals : {
+                id: 1,
+                description: "Brush your teeth",
+                redPoint: 0,
+                yellowPoint: 5,
+                greenPoint: 35,
+                category : {
+                    id: 1,
+                    description: "Hygiene"
+                }
+            }
+        },
+        {
+            type: "penalizar",
+            point : 5,
+            pointType: "red",
+            penalty: {
+                id: 2,
+                description: "Receive school warning",
+                point : -10
+            }
+        }, {
+            type: "resgatarPremio",
+            point : -5,
+            pointType: "blue",
+        }]
     },
     {
         id: 2,
-        dateTime: "date and time",
-        actionType: "pontoExtra",
         child: {
-            id: 1,
-            name: "Sheldon",
-            dtNasc: "01-25-2014",
+            id: 3,
+            name: "Benjamin",
+            dtNasc: "04-21-2012",
             gender: "male"
-        }, 
-        point : -1,
-        pointType: "red"
-    },
-    {
-        id: 3,
-        dateTime: "date and time",
-        child: {
-            id: 1,
-            name: "Sheldon",
-            dtNasc: "01-25-2014",
-            gender: "male"
-        }, 
-        actionType: "bonificar",
-        point : 35,
-        pointType: "green",
-        goals : {
-            id: 1,
-            description: "Brush your teeth",
-            redPoint: 0,
-            yellowPoint: 5,
-            greenPoint: 35,
-            category : {
-                id: 1,
-                description: "Hygiene"
+        },
+        actions: [
+            {
+                type: "pontoExtraPositivo",
+                point: 1,
+                pointType: "green" 
+            },{
+                type: "pontoExtraNegativo",
+                point : -1,
+                pointType: "red"
             }
-        }
-        
-    },
-    {
-        id: 4,
-        dateTime: "date and time",
-        actionType: "penalizar",
-        child: {
-            id: 1,
-            name: "Sheldon",
-            dtNasc: "01-25-2014",
-            gender: "male"
-        }, 
-        point : 5,
-        pointType: "red",
-        penalty: {
-            id: 2,
-            description: "Receive school warning",
-            point : -10
-        }
-    },
-    {
-        id: 5,
-        dateTime: "date and time",
-        actionType: "premiar",
-        child: {
-            id: 1,
-            name: "Sheldon",
-            dtNasc: "01-25-2014",
-            gender: "male"
-        }, 
-        point : 5,
-        pointType: "blue",
-    },
-    {
-        id: 6,
-        dateTime: "",
-        actionType: "pontoExtra",
-        child: {
-            id: 3,
-            name: "Benjamin",
-            dtNasc: "04-21-2012",
-            gender: "male"
-        },
-        point: 1,
-        pointType: "green" 
-    },
-    {
-        id: 7,
-        dateTime: "date and time",
-        actionType: "pontoExtra",
-        child: {
-            id: 3,
-            name: "Benjamin",
-            dtNasc: "04-21-2012",
-            gender: "male"
-        }, 
-        point : -1,
-        pointType: "red"
+        ]
     }
-
-]
-/*
-    Na teoria deveria buscar o total de pontos baseado nas realizacoes de 
-    cada criança, mas no caso para montar essa tela eu preciso apenas do
-    totals de pontos da criança em questao para entao determinar se eu posso 
-    fazer o resgate!
-    caso tenha ponto suficiente eu diminuo o valor de resgate do total de 
-    pontos da crianca senão nao sera possivel fazer nada pq o botao ficará
-    desabilitado.   
-
-*/
-const rescueAwards = [
-    {
-        totalPoints: 0,
-        child: {
-            id: 3,
-            name: "Benjamin",
-            dtNasc: "04-21-2012",
-            gender: "male"
-        },
-    },
-    {
-        totalPoints: 35,
-        child: {
-            id: 1,
-            name: "Sheldon",
-            dtNasc: "01-25-2014",
-            gender: "male"
-        },
-    },
 ]
