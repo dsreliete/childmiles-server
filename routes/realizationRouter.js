@@ -164,18 +164,6 @@ realizationRouter.route('/:childId/actions/totalPoints')
     .populate('penalty')
     .then(realization => {
         if(realization) {
-            // Realization.fetchTotalPointsPerChild((result) => {
-            //     if(result){
-            //         res.statusCode = 200;
-            //         res.setHeader('Content-Type', 'application/json');
-            //         res.json(result);
-                    
-            //     } else {
-            //         err = new Error(`It was not possible to calculate actions total points from child ${req.params.childId}`);
-            //         err.status = 404;
-            //         return next(err);
-            //     }
-            // })
             Realization.fetchTotalPointsPerChild()
             .then(result => {
                 if(result){
