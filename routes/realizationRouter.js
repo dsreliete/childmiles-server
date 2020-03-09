@@ -36,7 +36,7 @@ realizationRouter.route('/')
     })
     .catch(err => next(err));
 });
-
+//________________________________________________________________________//
 realizationRouter.route('/:childId/actions')
 .get((req, res, next) => {
     Realization.findOne({child: req.params.childId})
@@ -107,6 +107,7 @@ realizationRouter.route('/:childId/actions')
 });
 
 
+//________________________________________________________________________//
 realizationRouter.route('/:childId/action/:actionId')
 .get((req, res, next) => {
     res.statusCode = 403;
@@ -150,6 +151,94 @@ realizationRouter.route('/:childId/action/:actionId')
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
             res.json(`There is no action to delete from this child ${req.params.childId}!!!`);
+        }
+    })
+    .catch(err => next(err));
+});
+
+//________________________________________________________________________//
+realizationRouter.route('/:childId/actions/totalPoints')
+.get((req, res, next) => {
+    Realization.findOne({child: req.params.childId})
+    .populate('goals')
+    .populate('penalty')
+    .then(realization => {
+        if(realization) {
+            // Realization.fetchTotalPointsPerChild((result) => {
+            //     if(result){
+            //         res.statusCode = 200;
+            //         res.setHeader('Content-Type', 'application/json');
+            //         res.json(result);
+                    
+            //     } else {
+            //         err = new Error(`It was not possible to calculate actions total points from child ${req.params.childId}`);
+            //         err.status = 404;
+            //         return next(err);
+            //     }
+            // })
+            Realization.fetchTotalPointsPerChild()
+            .then(result => {
+                if(result){
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json(result);
+                }
+            })
+            .catch(err => next(err));
+        } else {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.json(`There is no action to show from this child ${req.params.childId}`);
+        }
+    })
+    .catch(err => next(err));
+});
+
+//________________________________________________________________________//
+realizationRouter.route('/:childId/actions/totalPoints/today')
+.get((req, res, next) => {
+    Realization.findOne({child: req.params.childId})
+    .populate('goals')
+    .populate('penalty')
+    .then(realization => {
+        if(realization) {
+            Realization.fetchTotalPointsPerChild((err, result) => {
+                if(err){
+                    next(err);
+                }
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                res.json(result);
+            })
+        } else {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.json(`There is no action to show from this child ${req.params.childId}`);
+        }
+    })
+    .catch(err => next(err));
+});
+
+//________________________________________________________________________//
+realizationRouter.route('/:childId/actions/totalPoints/byPeriod/:startDay/:endDay')
+.get((req, res, next) => {
+    Realization.findOne({child: req.params.childId})
+    .populate('goals')
+    .populate('penalty')
+    .then(realization => {
+        if(realization) {
+            Realization.fetchTotalPointsPerChild((err, result) => {
+                if(err){
+                    next(err);
+                }
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                res.json(result);
+            })
+        } else {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.json(`There is no action to show from this child ${req.params.childId}`);
         }
     })
     .catch(err => next(err));
