@@ -47,9 +47,9 @@ associationRouter.route('/:childId/goals')
             res.setHeader('Content-Type', 'application/json');
             res.json(association.goals);
         } else {
-            err = new Error(`there is no Goals associated with childId ${req.params.childId}`);
-            err.status = 404;
-            return next(err)
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.json(`there is no Goals associated with childId ${req.params.childId}`);
         }
     })
     .catch(err => next(err));
@@ -104,9 +104,9 @@ associationRouter.route('/:childId/goals')
             })
             .catch(err => next(err));
         } else {
-            err = new Error(`There is no association to delete from this child ${req.params.child}`);
-            err.status = 404;
-            return next(err);
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.json(`There is no association to delete from this child ${req.params.childId}`);
         }
     })
     .catch(err => next(err));
@@ -167,14 +167,14 @@ associationRouter.route('/:childId/goals/:goalId')
                 })
                 .catch(err => next(err));
             } else {
-                err = new Error(`Goal ${req.params.goalId}is not associated with this child ${req.params.childId} to delete`);
-                err.status = 404;
-                return next(err);
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                res.json(`Goal ${req.params.goalId}is not associated with this child ${req.params.childId} to delete`);
             }
         } else {
-            err = new Error(`Goal ${req.params.goalId}is not associated with this child ${req.params.childId} to delete`);
-            err.status = 404;
-            return next(err);
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.json(`Goal ${req.params.goalId}is not associated with this child ${req.params.childId} to delete`);
         }
     })
     .catch(err => next(err));
