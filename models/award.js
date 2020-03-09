@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const awardsSchema = new Schema({
+const awardSchema = new Schema({
 	description: {
 		type: String,
 		required: true,
@@ -18,4 +18,4 @@ const awardsSchema = new Schema({
 	timestamps: true
 });
 
-module.exports = mongoose.model('Awards', awardsSchema);
+module.exports = mongoose.model('Award', awardSchema);

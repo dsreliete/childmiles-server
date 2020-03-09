@@ -14,6 +14,9 @@ const associationSchema = new Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Goals'
     }]
+},
+{
+    timestamps: true
 });
 
 module.exports = mongoose.model('Association', associationSchema);
