@@ -46,7 +46,7 @@ realizationRouter.route('/:childId/actions')
         if(realization){
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
-            res.json(realization.actions);
+            res.json(realization);
         } else {
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
@@ -94,7 +94,7 @@ realizationRouter.route('/:childId/actions')
             .then(response => {
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
-                res.json(response);
+                res.json(realization);
             })
             .catch(err => next(err));
         } else {
@@ -108,6 +108,7 @@ realizationRouter.route('/:childId/actions')
 
 
 //________________________________________________________________________//
+
 realizationRouter.route('/:childId/action/:actionId')
 .get((req, res, next) => {
     res.statusCode = 403;
@@ -124,29 +125,23 @@ realizationRouter.route('/:childId/action/:actionId')
 .delete((req, res, next) => {
     Realization.findOne({child: req.params.childId})
     .then(realization => {
+        const id = req.params.id
         if(realization) {
-            //I don't know why checking realization.actions.includes(req.params.actionId) was not working so I did the following shit code!!!  
-            for (let i = (realization.actions.length-1); i >= 0; i--) {
-                if(realization.actions[i]._id.equals(req.params.actionId)) {
-                    const realizIndex = realization.actions.indexOf(req.params.actionId);
-                    const splicedRealiz = realization.actions.splice(realizIndex, 1);
-                    realization.save()
-                    .then(realiz => {
-                        res.statusCode = 200;
-                        res.setHeader('Content-Type', 'application/json');
-                        res.json(realiz);
-                    })
-                    .catch(err => next(err));
-                    break;
-                } else if (i === 1) {
+            if(realization.actions.some(element => element._id.equals(req.params.actionId))) {
+                const realizIndex = realization.actions.findIndex(elem => elem._id === req.params.actionId);
+                const splicedRealiz = realization.actions.splice(realizIndex, 1);
+                realization.save()
+                .then(realiz => {
                     res.statusCode = 200;
                     res.setHeader('Content-Type', 'application/json');
-                    res.json(`There is no action to delete from this child ${req.params.childId}`);
-                    res.end();
-                } else {
-                    continue;
-                }
-            }   
+                    res.json(realiz);
+                })
+                .catch(err => next(err));
+            } else {
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                res.json(`There is no action ${req.params.actionId} to delete from this child ${req.params.childId}`);
+            }
         } else {
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
@@ -189,15 +184,17 @@ realizationRouter.route('/:childId/actions/totalPoints/today')
     .populate('goals')
     .populate('penalty')
     .then(realization => {
+        console.log(realization)
         if(realization) {
-            Realization.fetchTotalPointsPerChild((err, result) => {
-                if(err){
-                    next(err);
+            Realization.fetchTotalPointsPerChildToday()
+            .then(result => {
+                if(result){
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json(result);
                 }
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'application/json');
-                res.json(result);
             })
+            .catch(err => next(err));
         } else {
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
@@ -208,21 +205,22 @@ realizationRouter.route('/:childId/actions/totalPoints/today')
 });
 
 //________________________________________________________________________//
-realizationRouter.route('/:childId/actions/totalPoints/byPeriod/:startDay/:endDay')
+realizationRouter.route('/:childId/actions/totalPoints/byPeriod')
 .get((req, res, next) => {
     Realization.findOne({child: req.params.childId})
     .populate('goals')
     .populate('penalty')
     .then(realization => {
         if(realization) {
-            Realization.fetchTotalPointsPerChild((err, result) => {
-                if(err){
-                    next(err);
+            Realization.fetchTotalPointsPerChildWeek()
+            .then(result => {
+                if(result){
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json(result);
                 }
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'application/json');
-                res.json(result);
             })
+            .catch(err => next(err));
         } else {
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');

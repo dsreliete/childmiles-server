@@ -63,7 +63,7 @@ realizationSchema.statics.fetchTotalPointsPerChild = function() {
     });
 }
 
-realizationSchema.statics.fetchTotalPointsPerActionPerChild = function(callback) {
+realizationSchema.statics.fetchTotalPointsPerActionPerChild = function() {
     return new Promise((resolve, reject) => {
         this.aggregate([
         { $unwind: "$actions" },
@@ -85,8 +85,7 @@ realizationSchema.statics.fetchTotalPointsPerActionPerChild = function(callback)
     });
 }
 
-
-realizationSchema.statics.fetchTotalPointsPerPointTypePerChild = function(callback) {
+realizationSchema.statics.fetchTotalPointsPerPointTypePerChild = function() {
     return new Promise((resolve, reject) => {
         this.aggregate([
         { $unwind: "$actions" },
@@ -108,17 +107,35 @@ realizationSchema.statics.fetchTotalPointsPerPointTypePerChild = function(callba
     });
 }
 
-realizationSchema.statics.fetchTotalPointsPerChildToday = function(callback) {
-    const today = "2020-03-09T00:00:00.000Z";
-    const tomorrow = "2020-03-10T00:00:00.000Z";
-    // will come as parameter, dates toISOString format
+function getMondayOfCurrentWeek(d) {
+    const day = d.getDay();
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + (day == 0?-6:1)-day );
+}
+
+function getSundayOfCurrentWeek(d) {
+    const day = d.getDay();
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + (day == 0?0:7)-day );
+}
+
+
+realizationSchema.statics.fetchTotalPointsPerChildToday = function() {
+    let td = new Date()
+    let tm = new Date(td)
+    tm.setDate(td.getDate()+1)
+    tm.setUTCHours(0,0,0,0);
+    td.setUTCHours(0,0,0,0);
+    td.toISOString()
+    tm.toISOString()
+    console.log(td)
+    console.log(tm)
+    // dates will come as parameter, for now it is set to make testable!
     return new Promise((resolve, reject) => { 
         this.aggregate([
             {
                 $match: {
-                    "updatedAt": {
-                        $gte: today,  
-                        $lt: tomorrow 
+                    "createdAt": {
+                        $gte: td,  
+                        $lt: tm 
                     }
                 }
             },
@@ -134,7 +151,7 @@ realizationSchema.statics.fetchTotalPointsPerChildToday = function(callback) {
         ], 
         (err, result) => {
             if (err) {
-                console.log("Error from search: fetchTotalPointsPerActionPerChild", err)
+                console.log("Error from search: fetchTotalPointsPerChildToday", err)
                 return reject(err);
             }
             resolve(result)
@@ -142,17 +159,22 @@ realizationSchema.statics.fetchTotalPointsPerChildToday = function(callback) {
     });
 }
 
-realizationSchema.statics.fetchTotalPointsPerChildWeek = function(callback) {
-    const startDay = "2020-03-09T00:00:00.000Z";
-    const endDay = "2020-03-17T00:00:00.000Z";
+realizationSchema.statics.fetchTotalPointsPerChildWeek = function() {
+    const td = new Date()
+    let start = getMondayOfCurrentWeek(td)
+    let end = getSundayOfCurrentWeek(td)
+    start.toISOString();
+    end.toISOString();
+    console.log(start)
+    console.log(end)
     // will come as parameter, dates toISOString format
     return new Promise((resolve, reject) => { 
         this.aggregate([
             {
                 $match: {
-                    "updatedAt": {
-                        $gte: "2020-03-09T00:00:00.000Z", //today 
-                        $lt: "2020-03-10T00:00:00.000Z" //tomorrow
+                    "createdAt": {
+                        $gte: start,  
+                        $lt: end 
                     }
                 }
             },
@@ -168,7 +190,7 @@ realizationSchema.statics.fetchTotalPointsPerChildWeek = function(callback) {
         ], 
         (err, result) => {
             if (err) {
-                console.log("Error from search: fetchTotalPointsPerActionPerChild", err)
+                console.log("Error from search: fetchTotalPointsPerChildWeek", err)
                 return reject(err);
             }
             resolve(result)
