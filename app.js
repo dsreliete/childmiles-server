@@ -15,6 +15,7 @@ const penaltyRouter = require('./routes/penaltyRouter');
 const goalRouter = require('./routes/goalRouter');
 const associationRouter = require('./routes/associationRouter');
 const realizationRouter = require('./routes/realizationRouter');
+const historyRouter = require('./routes/historyRouter');
 
 const url = config.mongoUrl;
 const connect = mongoose.connect(url, {
@@ -59,6 +60,7 @@ app.use('/penalties', penaltyRouter);
 app.use('/goals', goalRouter);
 app.use('/associations', associationRouter);
 app.use('/realizations', realizationRouter);
+app.use('/history', historyRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

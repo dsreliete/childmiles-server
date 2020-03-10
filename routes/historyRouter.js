@@ -51,54 +51,16 @@ realizationRouter.route('/:childId')
     .catch(err => next(err));
 })
 .post((req, res, next) => {
-    Realization.findOne({child: req.params.childId})
-    .then(realization => {
-        if(realization) {
-            req.body.forEach(element => {
-                realization.actions.push(element)
-            })
-            realization.save()
-            .then(elem => {
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'application/json');
-                res.json(elem);
-            })
-            .catch(err => next(err));
-        } else {
-            const realiz = new Realization({child: req.params.childId, actions: req.body})
-            Realization.create(realiz)
-            .then(realization => {
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'application/json');
-                res.json(realization);
-            })
-            .catch(err => next(err));
-        }
-    })
-    .catch(err => next(err));
+    res.statusCode = 403;
+    res.end('POST operation not supported on /history/childId');
 })
 .put((req, res, next) => {
     res.statusCode = 403;
-    res.end(`PUT operation not supported on /history/${req.params.childId}/`);
+    res.end('PUT operation not supported on /history/childId');
 })
 .delete((req, res, next) => {
-    Realization.findOne({child: req.params.childId})
-    .then(realization => {
-        if(realization) {
-            Realization.findByIdAndDelete(realization._id)
-            .then(response => {
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'application/json');
-                res.json(realization);
-            })
-            .catch(err => next(err));
-        } else {
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json');
-            res.json(`There is no realization to delete from this child ${req.params.childId}`);
-        }
-    })
-    .catch(err => next(err));
+    res.statusCode = 403;
+    res.end('DELETE operation not supported on /history/childId');
 });
 
 
