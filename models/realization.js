@@ -24,6 +24,10 @@ const actionSchema = new Schema({
     penalty: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Penalty'
+    },
+    award: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Award'
     }
 },{
     timestamps: true
