@@ -1,310 +1,121 @@
-const parent = {
-    id: 1,
-    name: "Eliete",
-    familyName: "Rodrigues"
+// POST Child
+{"name":"Sheldon", "image":"", "gender":"male", "dateBirth":"25/01/2014"}
+
+// POST FAMILY
+{"familyName":"Rodrigues", "image": ""}
+
+// POST AWARDS
+{"description": "Buy online games", "point": 60}
+
+// POST CATEGORIES
+{"description": "Hygiene"}
+
+// POST GOALS
+{
+    "description": "Wash your hands before eating",
+    "redPoint": 0,
+    "yellowPoint": 30,
+    "greenPoint": 50,
+    "category": "5e6448067781a600122ff5d3"
 }
 
-const childrenArray = [
-    {
-        id: 1,
-        name: "Sheldon",
-        dtNasc: "01-25-2014",
-        gender: "male"
+// POST PENALTIES
+{"description":"Rude reply to parents", "point": -30 }
 
-    },
-    {
-        id: 2,
-        name: "Amy",
-        dtNasc: "06-25-2017",
-        gender: "female"
-    },
-    {
-        id: 3,
-        name: "Benjamin",
-        dtNasc: "04-21-2012",
-        gender: "male"
+// POST ASSOCIATIONS/:childId/goals
+[{"_id": "5e644f73ffc3150013eeafb8"}, {"_id": "5e64481e7781a600122ff5d4"}, {"_id": "5e644f4affc3150013eeafb7"}]
 
-    },
+// POST REALIZATIONS/:childId/actions
+[
     {
-        id: 4,
-        name: "Maria Eduarda",
-        dtNasc: "09-18-2015",
-        gender: "female"
-    },
+        "type": "rescueAward",
+        "point": -30,
+        "pointType": "blue",
+        "award": "5e65ca2bb96159001a70a0b3"
+	}, {
+		"type": "rescueAward",
+        "point": -30,
+        "pointType": "blue",
+        "award": "5e69285ab69f5b001a8d8661"
+	},
+	{
+		"type": "rescueAward",
+        "point": -60,
+        "pointType": "blue",
+        "award": "5e69286cb69f5b001a8d8662"
+	}
 ]
 
-const awardsArray = [
+[
     {
-        id: 1,
-        description: "Go to park",
-        point: 30
-    },
-    {
-        id: 2,
-        description: "Buy goodies",
-        point: 30
-    },
-    {
-        id: 3,
-        description: "Buy online games",
-        point: 70
-    },
-    {
-        id: 4,
-        description: "Visit lovely aunt",
-        point: 30
-    },
+        "type": "bonus",
+        "point": 70,
+        "pointType": "green",
+        "goal": "5e644f73ffc3150013eeafb8"
+	}, {
+		"type": "bonus",
+        "point": 30,
+        "pointType": "yellow",
+        "goal": "5e64481e7781a600122ff5d4"
+	},
+	{
+		"type": "bonus",
+        "point": 0,
+        "pointType": "red",
+        "goal": "5e644f4affc3150013eeafb7"
+	}
 ]
 
-const categoriesArray = [
+[
     {
-        id: 1,
-        description: "Hygiene"
-    },
-    {
-        id: 2,
-        description: "Behaviour"
-    },
-    {
-        id: 3,
-        description: "School"
-    }
-
+        "type": "penalty",
+        "point": -10,
+        "pointType": "red",
+        "penalty": "5e65b7ce06f7a8001ad440ed"
+	}, {
+		"type": "penalty",
+        "point": -20,
+        "pointType": "red",
+        "penalty": "5e68fee1284670001ae51d04"
+	},
+	{
+		"type": "penalty",
+        "point": -30,
+        "pointType": "red",
+        "penalty": "5e68ff16284670001ae51d05"
+	}
 ]
 
-const goalsArray = [
+[
     {
-        id: 1,
-        description: "Brush your teeth",
-        redPoint: 0,
-        yellowPoint: 5,
-        greenPoint: 35,
-        category : {
-            id: 1,
-            description: "Hygiene"
-        }
-    },
-    {
-        id: 2,
-        description: "Take a rapid shower",
-        redPoint: 0,
-        yellowPoint: 5,
-        greenPoint: 35,
-        category : {
-            id: 1,
-            description: "Hygiene"
-        }
-    },
-    {
-        id: 3,
-        description: "Wash your hands before eating",
-        redPoint: 0,
-        yellowPoint: 5,
-        greenPoint: 30,
-        category : {
-            id: 1,
-            description: "Hygiene"
-        }
-    },
-    {
-        id: 4,
-        description: "Good behaviour going out",
-        redPoint: 0,
-        yellowPoint: 5,
-        greenPoint: 35,
-        category : {
-            id: 2,
-            description: "Behaviour"
-        }
-    },
-    {
-        id: 5,
-        description: "Sleep on time",
-        redPoint: 0,
-        yellowPoint: 5,
-        greenPoint: 35,
-        category : {
-            id: 2,
-            description: "Behaviour"
-        }
-    },
-    {
-        id: 6,
-        description: "Wake up on time",
-        redPoint: 0,
-        yellowPoint: 5,
-        greenPoint: 35,
-        category : {
-            id: 2,
-            description: "Behaviour"
-        }
-    },
-    {
-        id: 7,
-        description: "Willingness to do homework",
-        redPoint: 0,
-        yellowPoint: 90,
-        greenPoint: 135,
-        category : {
-            id: 2,
-            description: "School"
-        }
-    },
-    {
-        id: 8,
-        description: "Help your sister with homework",
-        redPoint: 0,
-        yellowPoint: 55,
-        greenPoint: 85,
-        category : {
-            id: 2,
-            description: "School"
-        }
-    },
-    {
-        id: 9,
-        description: "Best grades",
-        redPoint: 0,
-        yellowPoint: 50,
-        greenPoint: 100,
-        category : {
-            id: 2,
-            description: "School"
-        }
-    }
+        "type": "extraPositivePoint",
+        "point": 50,
+        "pointType": "green"
+	}, {
+		"type": "extraPositivePoint",
+        "point": 50,
+        "pointType": "green"
+	},
+	{
+		"type": "extraPositivePoint",
+        "point": 50,
+        "pointType": "green"
+	}
 ]
 
-const penaltiesArray = [
+[
     {
-        id: 1,
-        description: "Speaking bad words",
-        point : -50
-    },
-    {
-        id: 2,
-        description: "Receive school warning",
-        point : -100
-    },
-    {
-        id: 3,
-        description: "Rude reply to parents",
-        point : -150
-    }
-]
-
-/*
-    Associar um goal a uma crianca:
-    objeto goal deve ter um objeto category;
-    um objeto association deve ter um objeto child e um objeto goal
-    status :indica se determinado goal ja foi associado a determinada 
-    criança.
-*/
-const associationArray = [
-    {
-        id: 1,
-        status: true,
-        children: 1,
-        goals : 1
-    },
-    {
-        id: 2,
-        status: true,
-        children: 4,
-        goals : 9
-    }
-]
-/*
-    Quais sao as realizacoes?
-    ActionType: bonificar, penalizar, dar ponto extra positivo, 
-    dar ponto extra negativo e premiar
-
-    Ponto extra positivo: 
-        child, actiontype: "ponto_extra", 
-        point : 1, pointType: "green", dateTime
-    
-    Ponto extra negativo: 
-        child, actiontype: "ponto_extra", 
-        point : -1, pointType: "red", dateTime 
-    
-    Premiar:
-        child, award, actionType: premiar, 
-        point : 60, pointType: "blue", dateTime 
-
-    Penalizar:
-        child, penalty, actionType: penalizar,
-        point, pointType: "red", dateTime
-    
-    Bonificar:
-        child, goal, categoryGoal, actionType: bonificar,
-        point, pointType: "green or yellow", dateTime
-*/
-
-const realizationArray = [
-    {
-        id: 1,
-        child: {
-            id: 1,
-            name: "Sheldon",
-            dtNasc: "01-25-2014",
-            gender: "male"
-        }, 
-        actions: [{
-            type: "pontoExtraPositivo",
-            point : 1,
-            pointType: "green"
-        }, {
-            type: "pontoExtraNegativo",
-            point : -1,
-            pointType: "red"
-        }, {
-            type: "bonificar",
-            point : 35,
-            pointType: "green",
-            goals : {
-                id: 1,
-                description: "Brush your teeth",
-                redPoint: 0,
-                yellowPoint: 5,
-                greenPoint: 35,
-                category : {
-                    id: 1,
-                    description: "Hygiene"
-                }
-            }
-        },
-        {
-            type: "penalizar",
-            point : 5,
-            pointType: "red",
-            penalty: {
-                id: 2,
-                description: "Receive school warning",
-                point : -10
-            }
-        }, {
-            type: "resgatarPremio",
-            point : -5,
-            pointType: "blue",
-        }]
-    },
-    {
-        id: 2,
-        child: {
-            id: 3,
-            name: "Benjamin",
-            dtNasc: "04-21-2012",
-            gender: "male"
-        },
-        actions: [
-            {
-                type: "pontoExtraPositivo",
-                point: 1,
-                pointType: "green" 
-            },{
-                type: "pontoExtraNegativo",
-                point : -1,
-                pointType: "red"
-            }
-        ]
-    }
+        "type": "extraNegativePoint",
+        "point": -10,
+        "pointType": "red"
+	}, {
+		"type": "extraNegativePoint",
+        "point": -10,
+        "pointType": "red"
+	},
+	{
+		"type": "extraNegativePoint",
+        "point": -10,
+        "pointType": "red"
+	}
 ]
