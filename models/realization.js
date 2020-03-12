@@ -44,13 +44,20 @@ const realizationSchema = new Schema({
     timestamps: true
 });
 
-realizationSchema.statics.fetchTotalPointsPerChild = function() {
+realizationSchema.statics.fetchTotalPointsPerChild = function(childId) {
     return new Promise((resolve, reject) => {
         this.aggregate([
-            { $unwind: "$actions" },
+            {
+                $match: {
+                    "child": mongoose.Types.ObjectId(childId)
+                }
+            },
+            {
+                $unwind: "$actions"
+            },
             {
                 $group: {
-                    _id: null,
+                    _id: "$child",
                     totalPointsPerChild: {
                         $sum: "$actions.point"
                     }
@@ -67,18 +74,23 @@ realizationSchema.statics.fetchTotalPointsPerChild = function() {
     });
 }
 
-realizationSchema.statics.fetchTotalPointsPerActionPerChild = function() {
+realizationSchema.statics.fetchTotalPointsPerActionPerChild = function(childId) {
     return new Promise((resolve, reject) => {
         this.aggregate([
-        { $unwind: "$actions" },
-        {
-            $group: {
-                _id: "$actions.type",
-                totalPointPerChild: {
-                    $sum: "$actions.point"
+            {
+                $match: {
+                    "child": mongoose.Types.ObjectId(childId)
                 }
-            }
-        }], 
+            },
+            { $unwind: "$actions" },
+            {
+                $group: {
+                    _id: "$actions.type",
+                    totalPointPerChild: {
+                        $sum: "$actions.point"
+                    }
+                }
+            }], 
         (err, result) => {
             if (err) {
                 console.log("Error from search: fetchTotalPointsPerActionPerChild", err)
@@ -89,18 +101,24 @@ realizationSchema.statics.fetchTotalPointsPerActionPerChild = function() {
     });
 }
 
-realizationSchema.statics.fetchTotalPointsPerPointTypePerChild = function() {
+realizationSchema.statics.fetchTotalPointsPerPointTypePerChild = function(childId) {
     return new Promise((resolve, reject) => {
         this.aggregate([
-        { $unwind: "$actions" },
-        {
-            $group: {
-                _id: "$actions.pointType",
-                totalPointPerChild: {
-                    $sum: "$actions.point"
+            {
+                $match: {
+                    "child": mongoose.Types.ObjectId(childId)
+                }
+            },
+            { $unwind: "$actions" },
+            {
+                $group: {
+                    _id: "$actions.pointType",
+                    totalPointPerChild: {
+                        $sum: "$actions.point"
+                    }
                 }
             }
-        }], 
+        ], 
         (err, result) => {
             if (err) {
                 console.log("Error from search: fetchTotalPointsPerActionPerChild", err)
@@ -122,7 +140,7 @@ function getSundayOfCurrentWeek(d) {
 }
 
 
-realizationSchema.statics.fetchTotalPointsPerChildToday = function() {
+realizationSchema.statics.fetchTotalPointsPerChildToday = function(childId) {
     let td = new Date()
     let tm = new Date(td)
     tm.setDate(td.getDate()+1)
@@ -130,23 +148,25 @@ realizationSchema.statics.fetchTotalPointsPerChildToday = function() {
     td.setUTCHours(0,0,0,0);
     td.toISOString()
     tm.toISOString()
-    console.log(td)
-    console.log(tm)
     // dates will come as parameter, for now it is set to make testable!
     return new Promise((resolve, reject) => { 
         this.aggregate([
             {
                 $match: {
-                    "createdAt": {
-                        $gte: td,  
-                        $lt: tm 
-                    }
+                    $and: [
+                        { "child": mongoose.Types.ObjectId(childId) }, 
+                        { "createdAt": {
+                            $gte: td,  
+                            $lt: tm 
+                            }
+                        }
+                    ]
                 }
             },
             { $unwind: "$actions" },
             {
                 $group: {
-                    _id: null,
+                    _id: "$child",
                     totalPointPerChild: {
                         $sum: "$actions.point"
                     }
@@ -163,29 +183,31 @@ realizationSchema.statics.fetchTotalPointsPerChildToday = function() {
     });
 }
 
-realizationSchema.statics.fetchTotalPointsPerChildWeek = function() {
+realizationSchema.statics.fetchTotalPointsPerChildWeek = function(childId) {
     const td = new Date()
     let start = getMondayOfCurrentWeek(td)
     let end = getSundayOfCurrentWeek(td)
     start.toISOString();
     end.toISOString();
-    console.log(start)
-    console.log(end)
     // will come as parameter, dates toISOString format
     return new Promise((resolve, reject) => { 
         this.aggregate([
             {
                 $match: {
-                    "createdAt": {
-                        $gte: start,  
-                        $lt: end 
-                    }
+                    $and: [
+                        { "child": mongoose.Types.ObjectId(childId) }, 
+                        { "createdAt": {
+                            $gte: start,  
+                            $lt: end 
+                            }
+                        }
+                    ]
                 }
             },
             { $unwind: "$actions" },
             {
                 $group: {
-                    _id: null,
+                    _id: "child",
                     totalPointPerChild: {
                         $sum: "$actions.point"
                     }

@@ -155,11 +155,9 @@ realizationRouter.route('/:childId/action/:actionId')
 realizationRouter.route('/:childId/actions/totalPoints')
 .get((req, res, next) => {
     Realization.findOne({child: req.params.childId})
-    .populate('goals')
-    .populate('penalty')
     .then(realization => {
         if(realization) {
-            Realization.fetchTotalPointsPerChild()
+            Realization.fetchTotalPointsPerChild(req.params.childId)
             .then(result => {
                 if(result){
                     res.statusCode = 200;
@@ -181,12 +179,9 @@ realizationRouter.route('/:childId/actions/totalPoints')
 realizationRouter.route('/:childId/actions/totalPoints/today')
 .get((req, res, next) => {
     Realization.findOne({child: req.params.childId})
-    .populate('goals')
-    .populate('penalty')
     .then(realization => {
-        console.log(realization)
         if(realization) {
-            Realization.fetchTotalPointsPerChildToday()
+            Realization.fetchTotalPointsPerChildToday(req.params.childId)
             .then(result => {
                 if(result){
                     res.statusCode = 200;
@@ -208,11 +203,9 @@ realizationRouter.route('/:childId/actions/totalPoints/today')
 realizationRouter.route('/:childId/actions/totalPoints/byPeriod')
 .get((req, res, next) => {
     Realization.findOne({child: req.params.childId})
-    .populate('goals')
-    .populate('penalty')
     .then(realization => {
         if(realization) {
-            Realization.fetchTotalPointsPerChildWeek()
+            Realization.fetchTotalPointsPerChildWeek(req.params.childId)
             .then(result => {
                 if(result){
                     res.statusCode = 200;
