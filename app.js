@@ -3,7 +3,7 @@ const createError = require('http-errors');
 const path = require('path');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
-// const passport = require('passport');
+const passport = require('passport');
 
 const config = require('./config');
 const indexRouter = require('./routes/indexRouter');
@@ -16,6 +16,7 @@ const goalRouter = require('./routes/goalRouter');
 const associationRouter = require('./routes/associationRouter');
 const realizationRouter = require('./routes/realizationRouter');
 const historyRouter = require('./routes/historyRouter');
+const userRouter = require('./routes/userRouter');
 
 const url = config.mongoUrl;
 const connect = mongoose.connect(url, {
@@ -35,12 +36,6 @@ const app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-app.use(morgan('dev'));
-app.use(express.static(__dirname + '/public'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-// app.use(passport.initialize());
-
 // Secure traffic only
 app.all('*', (req, res, next) => {
   if (req.secure) {
@@ -51,8 +46,16 @@ app.all('*', (req, res, next) => {
   }
 });
 
+app.use(morgan('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(passport.initialize());
+
 app.use('/', indexRouter);
 app.use('/child', childRouter);
+
+app.use(express.static(__dirname + '/public'));
+
 app.use('/family', familyRouter);
 app.use('/categories', categoryRouter);
 app.use('/awards', awardRouter); 
@@ -61,6 +64,7 @@ app.use('/goals', goalRouter);
 app.use('/associations', associationRouter);
 app.use('/realizations', realizationRouter);
 app.use('/history', historyRouter);
+app.use('/users', userRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
