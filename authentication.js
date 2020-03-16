@@ -7,9 +7,9 @@ const User = require('./models/user');
 const conf = require('./config');
 const Role = require('./role');
 
-exports.local = passport.use(new LocalStrategy(User.authenticate()));
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
+exports.local = passport.use(new LocalStrategy(User.personSchema.authenticate()));
+passport.serializeUser(User.personSchema.serializeUser());
+passport.deserializeUser(User.personSchema.deserializeUser());
 
 exports.getToken = function(user) {
     return jwt.sign(user, conf.secretKey, {expiresIn: 3600});
@@ -24,7 +24,7 @@ exports.jwtPassport = passport.use(
         opts,
         (jwt_payload, done) => {
             console.log('JWT payload:', jwt_payload);
-            User.findOne({_id: jwt_payload._id}, (err, user) => {
+            User.personSchema.findOne({_id: jwt_payload._id}, (err, user) => {
                 if (err) {
                     return done(err, false);
                 } else if (user) {
