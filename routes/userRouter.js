@@ -1,23 +1,14 @@
 const express = require('express');
-const passport = require('passport');
-
 const User = require('../models/user');
 const authentication = require('../authentication');
 
 const userRouter = express.Router();
 
-userRouter.get('/', function(req, res, next) {
-  User.find()
-  .then(users => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    res.json(users);
-  })
-  .catch(err => next(err));
-});
-
-userRouter.get('/test', function(req, res, next) {
-  User.find()
+userRouter.route('/people')
+.get((req, res, next) => {
+  User.groupSchema.find()
+  .populate('family')
+  .populate('people')
   .then(users => {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
@@ -25,53 +16,145 @@ userRouter.get('/test', function(req, res, next) {
   })
   .catch(err => next(err));
 })
+.delete((req, res, next) => {
+  User.groupSchema.deleteMany()
+  .then(response => {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.json(response);
+  })
+  .catch(err => next(err));
+});
 
-userRouter.post('/signup', (req, res) => {
+//______________________________________________________________//
+
+userRouter.route('/person')
+.get((req, res, next) => {
+  User.personSchema.find()
+  .populate('family')
+  .populate('people')
+  .then(users => {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    res.json(users);
+  })
+  .catch(err => next(err));
+})
+.delete((req, res, next) => {
+  User.personSchema.deleteMany()
+  .then(response => {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.json(response);
+  })
+  .catch(err => next(err));
+});
+
+//______________________________________________________________________________________//
+
+//get users per family
+userRouter.route('/')
+.get(authentication.verifyUser, authentication.verifyAdminRole, (req, res, next) => {
+
+  let familyId = ''
+  if(req.user.family){
+    familyId = req.user.family;
+  }
+
+  User.groupSchema.findOne({family: familyId})
+  .populate('family')
+  .populate('people')
+  .then(group => {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    res.json({success: true, group: group});
+  })
+  .catch(err => next(err));
+})
+.delete((req, res, next) => {
+  User.groupSchema.deleteMany()
+    .then(response => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(response);
+    })
+    .catch(err => next(err));
+});
+
+//_______________________________________________________________________//
+
+
+userRouter.post('/signupNewUsers', authentication.verifyUser, authentication.verifyAdminRole, (req, res) => {
+
+  let familyId = ''
+  if(req.user.family){
+    familyId = req.user.family;
+  }
+
   //static method from passpot-local-mongoose to register username and pswd
-    User.register(new User({username: req.body.username}),
+    User.personSchema.register(new User.personSchema({username: req.body.username}),
         req.body.password,
-        (err, user) => {
+        (err, person) => {
             if (err) {
                 res.statusCode = 500;
                 res.setHeader('Content-Type', 'application/json');
-                res.json({err: err});
+                res.json({err: err, msg: "User.personSchema not working"});
             } else {
                 if (req.body.firstname) {
-                    user.firstname = req.body.firstname;
+                    person.firstname = req.body.firstname;
                 }
                 if (req.body.lastname) {
-                    user.lastname = req.body.lastname;
+                    person.lastname = req.body.lastname;
                 }
                 if (req.body.role) {
-                    user.role = req.body.role;
+                  person.role = req.body.role;
                 }
-                user.save(err => {
+                person.family = familyId;
+                
+                person.save(err => {
                     if (err) {
                         res.statusCode = 500;
                         res.setHeader('Content-Type', 'application/json');
-                        res.json({err: err});
+                        res.json({err: err, msg: "User.personSchema updated not working"});
                         return;
                     }
-                    //authenticate the newly registered user
-                    passport.authenticate('local')(req, res, () => {
-                        res.statusCode = 200;
+                    
+                    User.groupSchema.findOne({family: familyId})
+                    .then(group => {
+                      if(group) {
+                        group.people.push(person);
+
+                        group.save(err => {
+                          if (err) {
+                            res.statusCode = 500;
+                            res.setHeader('Content-Type', 'application/json');
+                            res.json({err: err, msg: "User.groupSchema updated not working"});
+                            return;
+                          }
+                          res.statusCode = 200;
+                          res.setHeader('Content-Type', 'application/json');
+                          res.json({success: true, status: 'new User Registration Successful to family!', group: group});
+                        })
+                      } else {
+                        res.statusCode = 500;
                         res.setHeader('Content-Type', 'application/json');
-                        res.json({success: true, status: 'Registration Successful!'});
+                        res.json({err: err, msg: "there is no family to push this person"});
+                        return;
+                      }
+                    })
+                    .catch(err => {
+                      res.statusCode = 500;
+                      res.setHeader('Content-Type', 'application/json');
+                      res.json({err: err, msg: "User.groupSchema updated not working"});
+                      return;
                     });
                 });
             }
     });
 });
 
-
-userRouter.post('/login', passport.authenticate('local'), (req, res) => {
-  const token = authentication.getToken({_id: req.user._id});
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'application/json');
-  res.json({ success: true, token: token, status: 'You are successfully logged in!' });
-});
-
-userRouter.get('/logout', (req, res, next) => {
+userRouter.get('/logout', authentication.verifyUser, (req, res, next) => {
+  const token = authentication.getToken({_id: req.user._id, family: req.user.family});
   res.redirect('/');
 });
 
