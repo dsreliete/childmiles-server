@@ -52,7 +52,7 @@ userRouter.route('/person')
 
 //______________________________________________________________________________________//
 
-//get users per family
+//get users per family and delete all users per family
 userRouter.route('/')
 .get(authentication.verifyUser, authentication.verifyAdminRole, (req, res, next) => {
 
@@ -71,8 +71,13 @@ userRouter.route('/')
   })
   .catch(err => next(err));
 })
-.delete((req, res, next) => {
-  User.groupSchema.deleteMany()
+.delete(authentication.verifyUser, authentication.verifyAdminRole, (req, res, next) => {
+  
+  let familyId = ''
+  if(req.user.family){
+    familyId = req.user.family;
+  }
+  User.groupSchema.findOneAndRemove({family: familyId})
     .then(response => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -82,8 +87,51 @@ userRouter.route('/')
 });
 
 //_______________________________________________________________________//
+//get specific user from family and update or delete it
+userRouter.route('/:userId')
+.put(authentication.verifyUser, (req, res, next) => {
+
+  if(req.params.userId != req.user._id) {
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
+    res.json({msg: "It is not possible to update user"});
+    return;
+  }
+
+  User.personSchema.findByIdAndUpdate(req.params.userId, {
+    $set: req.body
+  }, { new: true })
+  
+  .then(person => {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.json(person);
+  })
+  .catch(err => next(err));
+})
+.delete(authentication.verifyUser, authentication.verifyAdminRole, (req, res, next) => {
+  console.log(typeof req.user._id)
+  console.log(typeof req.params.userId)
+
+  // if(req.params.userId != req.user._id) {
+  //   res.statusCode = 500;
+  //   res.setHeader('Content-Type', 'application/json');
+  //   res.json({msg: "It is not possible to delete user"});
+  //   return;
+  // }
+
+  User.personSchema.findByIdAndDelete(req.params.userId)
+    .then(response => {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.json(response); 
+    })
+    .catch(err => next(err));
+});
 
 
+//_______________________________________________________________________//
+//adding new users to family group
 userRouter.post('/signupNewUsers', authentication.verifyUser, authentication.verifyAdminRole, (req, res) => {
 
   let familyId = ''
