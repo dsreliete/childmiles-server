@@ -4,6 +4,7 @@ const authentication = require('../authentication');
 
 const userRouter = express.Router();
 
+//get all people from DB
 userRouter.route('/people')
 .get((req, res, next) => {
   User.groupSchema.find()
@@ -16,6 +17,14 @@ userRouter.route('/people')
   })
   .catch(err => next(err));
 })
+.post((req, res, next) => {
+  res.statusCode = 403;
+  res.end('POST operation not supported on /people');
+})
+.put((req, res, next) => {
+  res.statusCode = 403;
+  res.end('PUT operation not supported on /people');
+})
 .delete((req, res, next) => {
   User.groupSchema.deleteMany()
   .then(response => {
@@ -27,7 +36,7 @@ userRouter.route('/people')
 });
 
 //______________________________________________________________//
-
+//get all person from DB
 userRouter.route('/person')
 .get((req, res, next) => {
   User.personSchema.find()
@@ -39,6 +48,14 @@ userRouter.route('/person')
     res.json(users);
   })
   .catch(err => next(err));
+})
+.post((req, res, next) => {
+  res.statusCode = 403;
+  res.end('POST operation not supported on /person');
+})
+.put((req, res, next) => {
+  res.statusCode = 403;
+  res.end('PUT operation not supported on /person');
 })
 .delete((req, res, next) => {
   User.personSchema.deleteMany()
@@ -52,7 +69,7 @@ userRouter.route('/person')
 
 //______________________________________________________________________________________//
 
-//get users per family and delete all users per family
+//get users per family or delete all users per family
 userRouter.route('/')
 .get(authentication.verifyUser, authentication.verifyAdminRole, (req, res, next) => {
 
@@ -70,6 +87,14 @@ userRouter.route('/')
     res.json({success: true, group: group});
   })
   .catch(err => next(err));
+})
+.post((req, res, next) => {
+  res.statusCode = 403;
+  res.end('POST operation not supported on /users');
+})
+.put((req, res, next) => {
+  res.statusCode = 403;
+  res.end('PUT operation not supported on /users');
 })
 .delete(authentication.verifyUser, authentication.verifyAdminRole, (req, res, next) => {
   
@@ -89,6 +114,14 @@ userRouter.route('/')
 //_______________________________________________________________________//
 //get specific user from family and update or delete it
 userRouter.route('/:userId')
+.get((req, res, next) => {
+  res.statusCode = 403;
+  res.end('GET operation not supported on /:userId');
+})
+.post((req, res, next) => {
+  res.statusCode = 403;
+  res.end('POST operation not supported on /:userId');
+})
 .put(authentication.verifyUser, (req, res, next) => {
 
   if(req.params.userId != req.user._id) {
@@ -110,15 +143,6 @@ userRouter.route('/:userId')
   .catch(err => next(err));
 })
 .delete(authentication.verifyUser, authentication.verifyAdminRole, (req, res, next) => {
-  console.log(typeof req.user._id)
-  console.log(typeof req.params.userId)
-
-  // if(req.params.userId != req.user._id) {
-  //   res.statusCode = 500;
-  //   res.setHeader('Content-Type', 'application/json');
-  //   res.json({msg: "It is not possible to delete user"});
-  //   return;
-  // }
 
   User.personSchema.findByIdAndDelete(req.params.userId)
     .then(response => {
@@ -200,7 +224,7 @@ userRouter.post('/signupNewUsers', authentication.verifyUser, authentication.ver
             }
     });
 });
-
+//______________________________________________________________________________________________//
 userRouter.get('/logout', authentication.verifyUser, (req, res, next) => {
   const token = authentication.getToken({_id: req.user._id, family: req.user.family});
   res.redirect('/');
