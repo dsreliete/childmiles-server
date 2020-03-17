@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-// const passportLocalMongoose = require('passport-local-mongoose');
 
 const childSchema = new Schema({
     name: {
@@ -20,11 +19,11 @@ const childSchema = new Schema({
         type: String,
         required: true
     },
+    family: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Family'
+    }
 
-}, {
-    timestamps: true
 });
-// plugin automatically handle username/password for storage in db
-// userSchema.plugin(passportLocalMongoose);
 
 module.exports = mongoose.model('Child', childSchema);
