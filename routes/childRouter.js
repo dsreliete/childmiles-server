@@ -9,8 +9,8 @@ childRouter.use(bodyParser.json());
 
 childRouter.route('/test')
 .get((req, res, next) => {
-
     Child.find()
+    .populate('family')
     .then(children => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -41,8 +41,6 @@ childRouter.route('/')
 
     Child.find({family: familyId})
     .then(children => {
-        console.log('Family get', familyId);
-        console.log('children ', children);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
         res.json(children);
