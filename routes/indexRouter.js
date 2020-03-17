@@ -37,13 +37,13 @@ router.post('/signup', (req, res) => {
   })
   
   //static method from passpot-local-mongoose to register username and pswd
-    User.personSchema.register(new User.personSchema({username: req.body.username}),
+    User.register(new User({username: req.body.username}),
         req.body.password,
         (err, person) => {
             if (err) {
                 res.statusCode = 500;
                 res.setHeader('Content-Type', 'application/json');
-                res.json({err: err, msg: "User.personSchema not working"});
+                res.json({err: err, msg: "It is not possible to create a new user"});
             } else {
                 if (req.body.firstname) {
                     person.firstname = req.body.firstname;
@@ -61,21 +61,9 @@ router.post('/signup', (req, res) => {
                         return;
                     }
                     
-                    const newUser = new User.groupSchema({family: familyId})
-                    newUser.people.push(person);
-
-                    User.groupSchema.create(newUser)
-                    .then(group => {
-                      res.statusCode = 200;
-                      res.setHeader('Content-Type', 'application/json');
-                      res.json({success: true, status: 'Registration Successful!', group: group});
-                    })
-                    .catch(err => {
-                      res.statusCode = 500;
-                      res.setHeader('Content-Type', 'application/json');
-                      res.json({err: err, msg: "no user saved"});
-                      return;
-                    });
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json({success: true, status: 'Registration Successful!', user: person});
                 });
             }
     });

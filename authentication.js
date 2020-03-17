@@ -7,9 +7,9 @@ const User = require('./models/user');
 const conf = require('./config');
 const Role = require('./role');
 
-exports.local = passport.use(new LocalStrategy(User.personSchema.authenticate()));
-passport.serializeUser(User.personSchema.serializeUser());
-passport.deserializeUser(User.personSchema.deserializeUser());
+exports.local = passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 exports.getToken = function(user) {
     return jwt.sign(user, conf.secretKey, {expiresIn: 3600});
@@ -24,7 +24,7 @@ exports.jwtPassport = passport.use(
         opts,
         (jwt_payload, done) => {
             console.log('JWT payload:', jwt_payload);
-            User.personSchema.findOne({_id: jwt_payload._id}, (err, user) => {
+            User.findOne({_id: jwt_payload._id}, (err, user) => {
                 if (err) {
                     return done(err, false);
                 } else if (user) {
@@ -46,17 +46,6 @@ exports.verifyRole = (req, res, next) => {
         return next();
     } else {
         const err = new Error("You are not authorized to perform this operation!");
-        err.status = 404;
-        return next(err);
-    }
-};
-
-//this middleware was created to allow admin to CRUD users 
-exports.verifyAdminRole = (req, res, next) => {
-    if(req.user.role === Role.Admin){
-        return next();
-    } else {
-        const err = new Error("Only admin role can perform this operation!");
         err.status = 404;
         return next(err);
     }

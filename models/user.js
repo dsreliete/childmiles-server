@@ -4,7 +4,7 @@ const passportLocalMongoose = require('passport-local-mongoose');
 
 const Role = require('../role');
 
-const personSchema = new Schema({
+const userSchema = new Schema({
     firstname: {
         type: String,
         default: ''
@@ -23,19 +23,6 @@ const personSchema = new Schema({
     }
 })
 
-const groupSchema = new Schema([
-    {
-        family: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Family'
-        },
-        people: [{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Person'
-        }]
-    }
-]);
 // plugin automatically handle username/password for storage in db
-personSchema.plugin(passportLocalMongoose);
-exports.personSchema = mongoose.model('Person', personSchema);
-exports.groupSchema = mongoose.model('Group', groupSchema);
+userSchema.plugin(passportLocalMongoose);
+module.exports = mongoose.model('User', userSchema);

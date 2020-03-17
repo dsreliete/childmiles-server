@@ -4,44 +4,12 @@ const authentication = require('../authentication');
 
 const userRouter = express.Router();
 
-//get all people from DB
-userRouter.route('/people')
-.get((req, res, next) => {
-  User.groupSchema.find()
-  .populate('family')
-  .populate('people')
-  .then(users => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    res.json(users);
-  })
-  .catch(err => next(err));
-})
-.post((req, res, next) => {
-  res.statusCode = 403;
-  res.end('POST operation not supported on /people');
-})
-.put((req, res, next) => {
-  res.statusCode = 403;
-  res.end('PUT operation not supported on /people');
-})
-.delete((req, res, next) => {
-  User.groupSchema.deleteMany()
-  .then(response => {
-      res.statusCode = 200;
-      res.setHeader('Content-Type', 'application/json');
-      res.json(response);
-  })
-  .catch(err => next(err));
-});
-
 //______________________________________________________________//
 //get all person from DB
-userRouter.route('/person')
+userRouter.route('/test')
 .get((req, res, next) => {
-  User.personSchema.find()
+  User.find()
   .populate('family')
-  .populate('people')
   .then(users => {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
@@ -58,7 +26,7 @@ userRouter.route('/person')
   res.end('PUT operation not supported on /person');
 })
 .delete((req, res, next) => {
-  User.personSchema.deleteMany()
+  User.deleteMany()
   .then(response => {
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json');
@@ -71,44 +39,75 @@ userRouter.route('/person')
 
 //get users per family or delete all users per family
 userRouter.route('/')
-.get(authentication.verifyUser, authentication.verifyAdminRole, (req, res, next) => {
+.get(authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
 
-  let familyId = ''
-  if(req.user.family){
-    familyId = req.user.family;
+  if(!req.user.family){
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
+    res.json({msg: "It is not possible to get all users from this family"});
+    return;
   }
+  const familyId = req.user.family;
 
-  User.groupSchema.findOne({family: familyId})
+  User.find({family: familyId})
   .populate('family')
-  .populate('people')
-  .then(group => {
+  .then(users => {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.json({success: true, group: group});
+    res.json({success: true, users: users});
   })
   .catch(err => next(err));
 })
-.post((req, res, next) => {
-  res.statusCode = 403;
-  res.end('POST operation not supported on /users');
+.post(authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
+  if(!req.user.family) {
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
+    res.json({msg: "It is not possible to get all child from this family"});
+    return;
+  }
+  const familyId = req.user.family;
+
+  //static method from passpot-local-mongoose to register username and pswd
+  User.register(new User({username: req.body.username}),
+    req.body.password,
+    (err, person) => {
+      if (err) {
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'application/json');
+          res.json({err: err, msg: "It is not possible to create a new user"});
+      } else {
+        if (req.body.firstname) {
+            person.firstname = req.body.firstname;
+        }
+        if (req.body.lastname) {
+            person.lastname = req.body.lastname;
+        }
+        if (req.body.role) {
+            person.role = req.body.role;
+        }
+        person.family = familyId;
+        person.save(err => {
+          if (err) {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            res.json({err: err, msg: "no person saved"});
+            return;
+          }
+          
+          res.statusCode = 200;
+          res.setHeader('Content-Type', 'application/json');
+          res.json({success: true, status: 'Registration Successful!', user: person});
+        });
+      }
+    });
 })
 .put((req, res, next) => {
   res.statusCode = 403;
   res.end('PUT operation not supported on /users');
 })
-.delete(authentication.verifyUser, authentication.verifyAdminRole, (req, res, next) => {
-  
-  let familyId = ''
-  if(req.user.family){
-    familyId = req.user.family;
-  }
-  User.groupSchema.findOneAndRemove({family: familyId})
-    .then(response => {
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'application/json');
-        res.json(response);
-    })
-    .catch(err => next(err));
+.delete((req, res, next) => {
+  res.statusCode = 403;
+  res.end('DELETE operation not supported on /users');
 });
 
 //_______________________________________________________________________//
@@ -127,24 +126,24 @@ userRouter.route('/:userId')
   if(req.params.userId != req.user._id) {
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
-    res.json({msg: "It is not possible to update user"});
+    res.json({msg: "You are not allowed to do this operation!"});
     return;
   }
 
-  User.personSchema.findByIdAndUpdate(req.params.userId, {
+  User.findByIdAndUpdate(req.params.userId, {
     $set: req.body
   }, { new: true })
   
-  .then(person => {
+  .then(user => {
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json');
-      res.json(person);
+      res.json(user);
   })
   .catch(err => next(err));
 })
-.delete(authentication.verifyUser, authentication.verifyAdminRole, (req, res, next) => {
+.delete(authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
 
-  User.personSchema.findByIdAndDelete(req.params.userId)
+  User.findByIdAndDelete(req.params.userId)
     .then(response => {
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json');
@@ -155,76 +154,13 @@ userRouter.route('/:userId')
 
 
 //_______________________________________________________________________//
-//adding new users to family group
-userRouter.post('/signupNewUsers', authentication.verifyUser, authentication.verifyAdminRole, (req, res) => {
 
-  let familyId = ''
-  if(req.user.family){
-    familyId = req.user.family;
-  }
+userRouter.post('resetPswd/:email', () => {
 
-  //static method from passpot-local-mongoose to register username and pswd
-    User.personSchema.register(new User.personSchema({username: req.body.username}),
-        req.body.password,
-        (err, person) => {
-            if (err) {
-                res.statusCode = 500;
-                res.setHeader('Content-Type', 'application/json');
-                res.json({err: err, msg: "User.personSchema not working"});
-            } else {
-                if (req.body.firstname) {
-                    person.firstname = req.body.firstname;
-                }
-                if (req.body.lastname) {
-                    person.lastname = req.body.lastname;
-                }
-                if (req.body.role) {
-                  person.role = req.body.role;
-                }
-                person.family = familyId;
-                
-                person.save(err => {
-                    if (err) {
-                        res.statusCode = 500;
-                        res.setHeader('Content-Type', 'application/json');
-                        res.json({err: err, msg: "User.personSchema updated not working"});
-                        return;
-                    }
-                    
-                    User.groupSchema.findOne({family: familyId})
-                    .then(group => {
-                      if(group) {
-                        group.people.push(person);
+})
 
-                        group.save(err => {
-                          if (err) {
-                            res.statusCode = 500;
-                            res.setHeader('Content-Type', 'application/json');
-                            res.json({err: err, msg: "User.groupSchema updated not working"});
-                            return;
-                          }
-                          res.statusCode = 200;
-                          res.setHeader('Content-Type', 'application/json');
-                          res.json({success: true, status: 'new User Registration Successful to family!', group: group});
-                        })
-                      } else {
-                        res.statusCode = 500;
-                        res.setHeader('Content-Type', 'application/json');
-                        res.json({err: err, msg: "there is no family to push this person"});
-                        return;
-                      }
-                    })
-                    .catch(err => {
-                      res.statusCode = 500;
-                      res.setHeader('Content-Type', 'application/json');
-                      res.json({err: err, msg: "User.groupSchema updated not working"});
-                      return;
-                    });
-                });
-            }
-    });
-});
 //______________________________________________________________________________________________//
+
 userRouter.get('/logout', authentication.verifyUser, (req, res, next) => {
   const token = authentication.getToken({_id: req.user._id, family: req.user.family});
   res.redirect('/');
