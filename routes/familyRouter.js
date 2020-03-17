@@ -1,11 +1,14 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const Family = require('../models/family');
+const authentication = require('../authentication');
 
 const familyRouter = express.Router();
 
 familyRouter.use(bodyParser.json());
 
+// return data from all families
+// * this route will be not supported in the future just here during app buiding
 familyRouter.route('/')
 .get((req, res, next) => {
     Family.find()
@@ -19,7 +22,7 @@ familyRouter.route('/')
 .post((req, res, next) => {
     Family.create(req.body)
     .then(family => {
-        console.log('Child Created ', family);
+        console.log('Family Created ', family);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
         res.json(family);
@@ -40,9 +43,12 @@ familyRouter.route('/')
     .catch(err => next(err));
 });
 
-
+//____________________________________________________________________________//
+// return data from specific family
+// * PUT available for admin or manager, 
+// * DELETE will be not supported in the future, because there is no reason to delete family after created
 familyRouter.route('/:familyId')
-.get((req, res, next) => {
+.get(authentication.verifyUser,(req, res, next) => {
     Family.findById(req.params.familyId)
     .then(family => {
         res.statusCode = 200;
@@ -55,7 +61,7 @@ familyRouter.route('/:familyId')
     res.statusCode = 403;
     res.end('POST operation not supported on /family/familyId');
 })
-.put((req, res, next) => {
+.put(authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
     Family.findByIdAndUpdate(req.params.familyId, {
         $set: req.body
     }, { new: true })
