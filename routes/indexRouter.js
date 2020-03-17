@@ -23,9 +23,8 @@ router.post('/login', passport.authenticate('local'), (req, res) => {
 //signup para criar familia nova e usuario admin
 router.post('/signup', (req, res) => {
 
-  let familyName = JSON.stringify(Math.random());
   let familyId = '';
-  const newFamily = new Family({ familyName: familyName, image: '' });
+  const newFamily = new Family({ familyName: JSON.stringify(Math.random()), image: '' });
   Family.create(newFamily)
   .then(family => {
     familyId = family._id;
