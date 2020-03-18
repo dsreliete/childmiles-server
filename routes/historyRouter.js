@@ -2,12 +2,13 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const moment = require('moment');
 const Realization = require('../models/realization');
+const authentication = require('../authentication');
 
 const historyRouter = express.Router();
 
 historyRouter.use(bodyParser.json());
 historyRouter.route('/')
-.get((req, res, next) => {
+.get(authentication.verifyUser, (req, res, next) => {
     Realization.find()
     .populate('child')
     .populate({ 
@@ -103,7 +104,7 @@ historyRouter.route('/')
 
 //------------------------------------------------------------//
 historyRouter.route('/:childId')
-.get((req, res, next) => {
+.get(authentication.verifyUser, (req, res, next) => {
     Realization.findOne({child: req.params.childId})
     .populate('child')
     .populate({ 
