@@ -37,6 +37,28 @@ const goalSchema = new Schema({
         ref: 'Family'
     }
 });
+
+goalSchema.statics.fetchGoalsPerCategory = function(categoryId, familyId) {
+    return new Promise((resolve, reject) => {
+        this.aggregate([
+            {
+                $match: {
+                    $and: [
+                        { "category": mongoose.Types.ObjectId(categoryId) },
+                        { "family": mongoose.Types.ObjectId(familyId) }
+                    ]
+                }
+            }
+        ], 
+        (err, result) => {
+            if (err) {
+                console.log("Error from search: fetchGoalsPerCategory", err)
+                return reject(err);
+            }
+            resolve(result)
+        })
+    });
+}
     
 module.exports = mongoose.model('Goal', goalSchema);
     

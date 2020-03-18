@@ -109,6 +109,8 @@ goalRouter.route('/')
     .catch(err => next(err));
 });
 
+//____________________________________________________________________________________//
+
 goalRouter.route('/:goalId')
 .get((req, res, next) => {
     res.statusCode = 403;
@@ -138,5 +140,30 @@ goalRouter.route('/:goalId')
     })
     .catch(err => next(err));
 });
+
+//______________________________________________________________________________________//
+
+goalRouter.get('/perCategory/:categoryId', authentication.verifyUser, (req, res, next) => {
+    
+    if(!req.user.family){
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json');
+        res.json({msg: "It is not possible to get goals/perCategory for this family"});
+        return;
+    }
+    const familyId = req.user.family;
+    
+    Goal.fetchGoalsPerCategory(req.params.categoryId, familyId)
+    .then(result => {
+        if(result){
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.json(result);
+        }
+
+    })
+    .catch(err => next(err));
+
+})
 
 module.exports = goalRouter;
