@@ -47,7 +47,7 @@ childRouter.route('/')
     })
     .catch(err => next(err));
 })
-.post(authentication.verifyUser, (req, res, next) => {
+.post(authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
 
     if(!req.user.family){
         res.statusCode = 500;
@@ -87,12 +87,12 @@ childRouter.route('/')
     res.statusCode = 403;
     res.end('PUT operation not supported on /child');
 })
-.delete(authentication.verifyUser, (req, res, next) => {
+.delete(authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
 
     if(!req.user.family){
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json');
-        res.json({msg: "It is not possible to get all child from this family"});
+        res.json({msg: "It is not possible to delete all child from this family"});
         return;
     }
     const familyId = req.user.family;
