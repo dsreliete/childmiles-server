@@ -12,11 +12,9 @@ const associationSchema = new Schema({
     },
     goals : [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Goals'
+        ref: 'Goal'
     }]
-},
-{
-    timestamps: true
 });
+
 
 module.exports = mongoose.model('Association', associationSchema);
