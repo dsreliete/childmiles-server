@@ -5,12 +5,12 @@ const categorySchema = new Schema({
 	description: {
 		type: String,
 		required: true,
-		unique: true 
-	}
+		unique: false
 	},
-	{
-	timestamps: true
-	}
-);
+	family: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Family'
+    }
+});
 
 module.exports = mongoose.model('Category', categorySchema);
