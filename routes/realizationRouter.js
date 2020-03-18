@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const Realization = require('../models/realization');
+const authentication = require('../authentication');
 
 const realizationRouter = express.Router();
 
@@ -38,7 +39,7 @@ realizationRouter.route('/')
 });
 //________________________________________________________________________//
 realizationRouter.route('/:childId/actions')
-.get((req, res, next) => {
+.get(authentication.verifyUser, (req, res, next) => {
     Realization.findOne({child: req.params.childId})
     .populate('goals')
     .populate('penalty')
@@ -55,7 +56,7 @@ realizationRouter.route('/:childId/actions')
     })
     .catch(err => next(err));
 })
-.post((req, res, next) => {
+.post(authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
     Realization.findOne({child: req.params.childId})
     .then(realization => {
         if(realization) {
@@ -87,23 +88,8 @@ realizationRouter.route('/:childId/actions')
     res.end(`PUT operation not supported on /realizations/${req.params.childId}/actions`);
 })
 .delete((req, res, next) => {
-    Realization.findOne({child: req.params.childId})
-    .then(realization => {
-        if(realization) {
-            Realization.findByIdAndDelete(realization._id)
-            .then(response => {
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'application/json');
-                res.json(realization);
-            })
-            .catch(err => next(err));
-        } else {
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json');
-            res.json(`There is no realization to delete from this child ${req.params.childId}`);
-        }
-    })
-    .catch(err => next(err));
+    res.statusCode = 403;
+    res.end(`DELETE operation not supported on /realizations/${req.params.childId}/actions`);
 });
 
 
@@ -122,7 +108,7 @@ realizationRouter.route('/:childId/action/:actionId')
     res.statusCode = 403;
     res.end(`PUT operation not supported on /realizations/${req.params.childId}/actions/${req.params.actionId}`);
 })
-.delete((req, res, next) => {
+.delete(authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
     Realization.findOne({child: req.params.childId})
     .then(realization => {
         const id = req.params.id
@@ -153,7 +139,7 @@ realizationRouter.route('/:childId/action/:actionId')
 
 //________________________________________________________________________//
 realizationRouter.route('/:childId/actions/totalPoints')
-.get((req, res, next) => {
+.get(authentication.verifyUser, (req, res, next) => {
     Realization.findOne({child: req.params.childId})
     .then(realization => {
         if(realization) {
@@ -177,7 +163,7 @@ realizationRouter.route('/:childId/actions/totalPoints')
 
 //________________________________________________________________________//
 realizationRouter.route('/:childId/actions/totalPoints/today')
-.get((req, res, next) => {
+.get(authentication.verifyUser, (req, res, next) => {
     Realization.findOne({child: req.params.childId})
     .then(realization => {
         if(realization) {
@@ -201,7 +187,7 @@ realizationRouter.route('/:childId/actions/totalPoints/today')
 
 //________________________________________________________________________//
 realizationRouter.route('/:childId/actions/totalPoints/byPeriod')
-.get((req, res, next) => {
+.get(authentication.verifyUser, (req, res, next) => {
     Realization.findOne({child: req.params.childId})
     .then(realization => {
         if(realization) {
