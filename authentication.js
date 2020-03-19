@@ -15,6 +15,11 @@ exports.getToken = function(user) {
     return jwt.sign(user, conf.secretKey, {expiresIn: 3600});
 };
 
+exports.getEmailToken = function(user) {
+    return jwt.sign(user, conf.secretKey, {expiresIn: 1800});
+};
+
+//The Passport JWT authentication strategy is created and configured.
 const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 opts.secretOrKey = conf.secretKey;
@@ -37,7 +42,9 @@ exports.jwtPassport = passport.use(
     )
 );
 
-
+//middleware is used to authenticate the users request. 
+//Using passport.authenticate() and specifying the 'jwt' strategy the request is 
+//authenticated by checking for the standard Authorization header and verifying the verification token
 exports.verifyUser = passport.authenticate('jwt', {session: false});
 
 //this middleware allow CRUD every entities of the app except user
