@@ -20,6 +20,13 @@ const userSchema = new Schema({
     family: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Family'
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    email: {
+        type: String
     }
 })
 
