@@ -85,6 +85,9 @@ userRouter.route('/')
         if (req.body.role) {
             person.role = req.body.role;
         }
+        if (req.body.email) {
+          person.email = req.body.email;
+        }
         person.family = familyId;
         person.save(err => {
           if (err) {
