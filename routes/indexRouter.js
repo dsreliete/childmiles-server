@@ -68,8 +68,26 @@ router.post('/signup', (req, res) => {
                         return;
                     }
                     
-                    sendVerificationEmail(person, req, res)
-                });
+                    const token = authentication.getEmailToken({_id: person._id});
+
+                    sgMail.setApiKey(conf.sendgridKey);
+
+                    const link="https://"+req.headers.host+"/verifyEmail/"+token;
+                    const msg = {
+                      to: person.email,
+                      from: conf.fromEmail,
+                      subject: 'Account Verification Token',
+                      text: 'Child Miles: an efficient app to manage child tasks!',
+                      html: `<p>Hi ${person.firstname}<p><br><p>Please click on the following <a href="${link}">link</a> to verify your account.</p> 
+                      <br><p>If you did not request this, please ignore this email.</p>`
+                    };
+
+                    sgMail.send(msg)
+                    .then(result => {
+                        res.status(200).json({message: 'A verification email has been sent to ' + person.email + '.'});
+                    })
+                    .catch(err => res.status(500).json({message: err.message}));
+              });
             }
     });
 });
@@ -96,27 +114,92 @@ router.get('/verifyEmail/:token', (req,res) => {
   .catch(err => nexr(err));
 });
 
-function sendVerificationEmail(user, req, res){
-  
-      const token = authentication.getEmailToken({_id: user._id});
+router.post('/recoverCredentials', (req, res) => {
+
+  User.findOne({email: req.body.email})
+  .then(user => {
+      console.log(user)
+
+      if(!user) return res.status(400).json({message: "We were unable to find a user for this email."});  
 
       sgMail.setApiKey(conf.sendgridKey);
 
-      const link="https://"+req.headers.host+"/verifyEmail/"+token;
+      const token = authentication.getEmailToken({_id: user._id});
+      console.log(token)
+
+      const link = "https://" + req.headers.host + "/reset/" + token;
       const msg = {
         to: user.email,
         from: conf.fromEmail,
-        subject: 'Account Verification Token',
+        subject: "Password change request",
         text: 'Child Miles: an efficient app to manage child tasks!',
-        html: `<p>Hi ${user.firstname}<p><br><p>Please click on the following <a href="${link}">link</a> to verify your account.</p> 
-        <br><p>If you did not request this, please ignore this email.</p>`
+        html: `<p>Hi ${user.username}</p>
+        <p>Please click on the following <a href="${link}">link</a> to reset your password.</p> 
+        <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>`
       };
+
       sgMail.send(msg)
       .then(result => {
-          res.status(200).json({message: 'A verification email has been sent to ' + user.email + '.'});
+        res.status(200).json({message: 'A reset email has been sent to ' + user.email + '.'});
       })
-      .catch(err => console.log(err));
-}
+      .catch(err => res.status(500).json({message: err.message}));
+  })
+  .catch(err => {
+    return res.status(401).json({ error: err, message: `The email address ${email} is not associated with any account. Double-check your email address and try again.`});
+  })
+});
+
+router.post('/reset/:token', (req, res, next) => {
+  
+  const token = req.params.token; 
+  if(!token) return res.status(400).json({message: "It is impossible to find a user for this token."});
+
+  const decodedToken = decodeToken(token);
+
+  User.findById(decodedToken._id)
+  .then(user => {
+    if (!user) return res.status(401).json({message: 'Password reset token is invalid or has expired.'});
+    res.status(200).json({link: `https://${req.headers.host}/updateCredentials/${user._id}`})
+  })
+  .catch(err => next(err));
+});
+
+router.post('/updateCredentials/:userId', (req, res) => {
+  const userId  = req.params.userId;
+
+  User.findById(userId)
+  .then(user => {
+    if (!user) return res.status(401).json({message: 'It is not possible to recover password. Try again!'});
+
+    user.setPassword(req.body.password, (err) => {
+      if (err) return res.status(500).json({message:err.message});
+      
+      user.save(function(err) {
+          if (err) res.status(500).json({message:err.message});
+          console.log(user)
+          
+          const msg = {
+            to: user.email,
+            from: conf.fromEmail,
+            subject: "Your password has been changed",
+            text: 'Child Miles: an efficient app to manage child tasks!',
+            html: `<p>Hi ${user.username}</p>
+            <p>This is a confirmation that the password for your account ${user.email} has just been changed.</p>`
+          };
+
+          sgMail.setApiKey(conf.sendgridKey);
+          sgMail.send(msg)
+          .then(result => {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            res.json({success: true, status: 'Update password successful!'});  
+          })
+          .catch(err => res.status(500).json({message: err.message}));
+      });
+    });
+  })
+  .catch(err => res.status(500).json({message: err.message}));
+});
 
 function decodeToken(token) {
   const base64Url = token.split('.')[1];
