@@ -1,5 +1,7 @@
 const express = require('express');
+const sgMail = require('@sendgrid/mail');
 const User = require('../models/user');
+const conf = require('../config');
 const authentication = require('../authentication');
 
 const userRouter = express.Router();
@@ -67,6 +69,17 @@ userRouter.route('/')
   }
   const familyId = req.user.family;
 
+  let adminUser = '';
+  User.findById(req.user._id)  
+  .then(user => {
+    adminUser = user;
+  })
+  .catch(err => {
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'application/json');
+    res.json({error: err, msg: "It is not possible to get all child from this family"});
+  })
+
   //static method from passpot-local-mongoose to register username and pswd
   User.register(new User({username: req.body.username}),
     req.body.password,
@@ -96,10 +109,7 @@ userRouter.route('/')
             res.json({err: err, msg: "no person saved"});
             return;
           }
-          
-          res.statusCode = 200;
-          res.setHeader('Content-Type', 'application/json');
-          res.json({success: true, status: 'Registration Successful!', user: person});
+          sendVerificationEmail(person, adminUser, req, res)
         });
       }
     });
@@ -168,5 +178,27 @@ userRouter.get('/logout', authentication.verifyUser, (req, res, next) => {
   const token = authentication.getToken({_id: req.user._id, family: req.user.family});
   res.redirect('/');
 });
+
+function sendVerificationEmail(user, adminUser, req, res){
+  
+  const token = authentication.getEmailToken({_id: user._id});
+
+  sgMail.setApiKey(conf.sendgridKey);
+
+  const link="https://"+req.headers.host+"/verifyEmail/"+token;
+  const msg = {
+    to: user.email,
+    from: conf.fromEmail,
+    subject: 'Account Verification Token',
+    text: 'Child Miles: an efficient app to manage child tasks!',
+    html: `<p>Hi ${user.firstname}<p><br><p>Child Miles admin user ${adminUser.firstname} registered you as one of users of Child Miles app. Please click on the following <a href="${link}">link</a> to verify your account.</p> 
+    <br><p>If you did not request this, please ignore this email.</p>`
+  };
+  sgMail.send(msg)
+  .then(result => {
+      res.status(200).json({message: 'A verification email has been sent to ' + user.email + '.'});
+  })
+  .catch(err => console.log(err));
+}
 
 module.exports = userRouter;
