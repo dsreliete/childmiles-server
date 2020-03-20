@@ -13,7 +13,7 @@ if (process.env.NODE_ENV !== 'production') require('dotenv').config({path: __dir
 
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
-app.set('secPort', port+443);
+// app.set('secPort', port+443);
 
 /**
  * Create HTTP server.
@@ -33,22 +33,22 @@ server.on('listening', onListening);
  * Create HTTPS server.
  */ 
  
-const options = {
-  key: fs.readFileSync(__dirname+'/server.key'),
-  cert: fs.readFileSync(__dirname+'/server.cert')
-};
+// const options = {
+//   key: fs.readFileSync(__dirname+'/server.key'),
+//   cert: fs.readFileSync(__dirname+'/server.cert')
+// };
 
-const secureServer = https.createServer(options, app);
+// const secureServer = https.createServer(options, app);
 
 /**
 * Listen on provided port, on all network interfaces.
 */
 
-secureServer.listen(app.get('secPort'), () => {
- console.log('Server listening on port ', app.get('secPort'));
-});
-secureServer.on('error', onError);
-secureServer.on('listening', onListening);
+// secureServer.listen(app.get('secPort'), () => {
+//  console.log('Server listening on port ', app.get('secPort'));
+// });
+// secureServer.on('error', onError);
+// secureServer.on('listening', onListening);
 
 
 
