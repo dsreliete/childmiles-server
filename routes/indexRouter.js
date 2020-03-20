@@ -107,7 +107,7 @@ function sendVerificationEmail(user, req, res){
         to: user.email,
         from: conf.fromEmail,
         subject: 'Account Verification Token',
-        text: 'and easy to do anywhere, even with Node.js',
+        text: 'Child Miles: an efficient app to manage child tasks!',
         html: `<p>Hi ${user.firstname}<p><br><p>Please click on the following <a href="${link}">link</a> to verify your account.</p> 
         <br><p>If you did not request this, please ignore this email.</p>`
       };
