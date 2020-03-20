@@ -1,13 +1,12 @@
 /**
  * Module dependencies.
  */
-require('dotenv').config()
 const https = require('https');
 const fs = require('fs');
 var app = require('./app');
 var debug = require('debug')('childmiles-server:server');
 var http = require('http');
-
+if (process.env.NODE_ENV !== 'production') require('dotenv').config({path: __dirname + '/.env'})
 /**
  * Get port from environment and store in Express.
  */
