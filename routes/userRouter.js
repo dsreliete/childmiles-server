@@ -1,7 +1,6 @@
 const express = require('express');
 const sgMail = require('@sendgrid/mail');
 const User = require('../models/user');
-const conf = require('../config');
 const authentication = require('../authentication');
 
 const userRouter = express.Router();
@@ -183,12 +182,12 @@ function sendVerificationEmail(user, adminUser, req, res){
   
   const token = authentication.getEmailToken({_id: user._id});
 
-  sgMail.setApiKey(conf.sendgridKey);
+  sgMail.setApiKey(process.env.SENDGRID_KEY);
 
   const link="https://"+req.headers.host+"/verifyEmail/"+token;
   const msg = {
     to: user.email,
-    from: conf.fromEmail,
+    from: process.env.FROM_EMAIL,
     subject: 'Account Verification Token',
     text: 'Child Miles: an efficient app to manage child tasks!',
     html: `<p>Hi ${user.firstname}<p><br><p>Child Miles admin user ${adminUser.firstname} registered you as one of users of Child Miles app. Please click on the following <a href="${link}">link</a> to verify your account.</p> 

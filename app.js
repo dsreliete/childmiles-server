@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express');
 const createError = require('http-errors');
 const path = require('path');
@@ -5,7 +6,6 @@ const morgan = require('morgan');
 const mongoose = require('mongoose');
 const passport = require('passport');
 
-const config = require('./config');
 const indexRouter = require('./routes/indexRouter');
 const childRouter = require('./routes/childRouter');
 const familyRouter = require('./routes/familyRouter');
@@ -18,7 +18,7 @@ const realizationRouter = require('./routes/realizationRouter');
 const historyRouter = require('./routes/historyRouter');
 const userRouter = require('./routes/userRouter');
 
-const url = config.mongoUrl;
+const url = process.env.MONGODB_URI;
 const connect = mongoose.connect(url, {
   useCreateIndex: true,
   useFindAndModify: false,

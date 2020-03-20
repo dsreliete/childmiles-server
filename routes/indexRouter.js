@@ -7,7 +7,6 @@ const Role = require('../role');
 const User = require('../models/user');
 const Family = require('../models/family');
 const authentication = require('../authentication');
-const conf = require('../config');
 
 const router = express.Router();
 
@@ -70,12 +69,12 @@ router.post('/signup', (req, res) => {
                     
                     const token = authentication.getEmailToken({_id: person._id});
 
-                    sgMail.setApiKey(conf.sendgridKey);
+                    sgMail.setApiKey(process.env.SENDGRID_KEY);
 
                     const link="https://"+req.headers.host+"/verifyEmail/"+token;
                     const msg = {
                       to: person.email,
-                      from: conf.fromEmail,
+                      from: process.env.FROM_EMAIL,
                       subject: 'Account Verification Token',
                       text: 'Child Miles: an efficient app to manage child tasks!',
                       html: `<p>Hi ${person.firstname}<p><br><p>Please click on the following <a href="${link}">link</a> to verify your account.</p> 
@@ -122,7 +121,7 @@ router.post('/recoverCredentials', (req, res) => {
 
       if(!user) return res.status(400).json({message: "We were unable to find a user for this email."});  
 
-      sgMail.setApiKey(conf.sendgridKey);
+      sgMail.setApiKey(process.env.SENDGRID_KEY);
 
       const token = authentication.getEmailToken({_id: user._id});
       console.log(token)
@@ -130,7 +129,7 @@ router.post('/recoverCredentials', (req, res) => {
       const link = "https://" + req.headers.host + "/reset/" + token;
       const msg = {
         to: user.email,
-        from: conf.fromEmail,
+        from: process.env.FROM_EMAIL,
         subject: "Password change request",
         text: 'Child Miles: an efficient app to manage child tasks!',
         html: `<p>Hi ${user.username}</p>
@@ -180,14 +179,14 @@ router.post('/updateCredentials/:userId', (req, res) => {
           
           const msg = {
             to: user.email,
-            from: conf.fromEmail,
+            from: process.env.FROM_EMAIL,
             subject: "Your password has been changed",
             text: 'Child Miles: an efficient app to manage child tasks!',
             html: `<p>Hi ${user.username}</p>
             <p>This is a confirmation that the password for your account ${user.email} has just been changed.</p>`
           };
 
-          sgMail.setApiKey(conf.sendgridKey);
+          sgMail.setApiKey(process.env.SENDGRID_KEY);
           sgMail.send(msg)
           .then(result => {
             res.statusCode = 200;

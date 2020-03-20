@@ -4,7 +4,6 @@ const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const jwt = require('jsonwebtoken'); 
 const User = require('./models/user');
-const conf = require('./config');
 const Role = require('./role');
 
 exports.local = passport.use(new LocalStrategy(User.authenticate()));
@@ -12,17 +11,17 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 exports.getToken = function(user) {
-    return jwt.sign(user, conf.secretKey, {expiresIn: 3600});
+    return jwt.sign(user, process.env.PASSPORT_SECRET, {expiresIn: 3600});
 };
 
 exports.getEmailToken = function(user) {
-    return jwt.sign(user, conf.secretKey, {expiresIn: 1800});
+    return jwt.sign(user, process.env.PASSPORT_SECRET, {expiresIn: 1800});
 };
 
 //The Passport JWT authentication strategy is created and configured.
 const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-opts.secretOrKey = conf.secretKey;
+opts.secretOrKey = process.env.PASSPORT_SECRET;
 
 exports.jwtPassport = passport.use(
     new JwtStrategy(

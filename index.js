@@ -1,6 +1,7 @@
 /**
  * Module dependencies.
  */
+require('dotenv').config()
 const https = require('https');
 const fs = require('fs');
 var app = require('./app');
