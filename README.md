@@ -25,3 +25,6 @@ Some commands I used developing this API
 
 To create a home http certification, use this command:
 ```openssl req -nodes -new -x509 -keyout server.key -out server.cert``` at the folder level at index.js file. After look at index.js changes!!!
+
+Published with the help of Heroku: \o/
+https://childmiles-server.herokuapp.com/
