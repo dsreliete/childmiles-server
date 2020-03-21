@@ -11,17 +11,17 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 exports.getToken = function(user) {
-    return jwt.sign(user, process.env.PASSPORT_SECRET, {expiresIn: 3600});
+    return jwt.sign(user, process.env.PASSPORT_KEY, {expiresIn: 3600});
 };
 
 exports.getEmailToken = function(user) {
-    return jwt.sign(user, process.env.PASSPORT_SECRET, {expiresIn: 1800});
+    return jwt.sign(user, process.env.PASSPORT_KEY, {expiresIn: 1800});
 };
 
 //The Passport JWT authentication strategy is created and configured.
 const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-opts.secretOrKey = process.env.PASSPORT_SECRET;
+opts.secretOrKey = process.env.PASSPORT_KEY;
 
 exports.jwtPassport = passport.use(
     new JwtStrategy(

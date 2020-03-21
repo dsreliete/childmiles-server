@@ -5,7 +5,7 @@ Message for future me:
 All endpoints are stored at collection childMilles!!! Hope it would be useful for future!
 
 - Secret Information
-HTTPS files like **server.cert** and **server.key** or **config.js** file or docker files (**Dockerfile, init-mongo.js, docker-compose.yml and .dockerignore**) are stored at my **Drive: Credentials/ChildMiles**
+HTTPS files like **server.cert** and **server.key** or **.env** file or docker files (**Dockerfile, init-mongo.js, docker-compose.yml and .dockerignore**) are stored at my **Drive: Credentials/ChildMiles**
 
 - Docker commands you can use:
 ```docker-compose up```  <br />
