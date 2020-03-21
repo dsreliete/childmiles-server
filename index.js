@@ -1,8 +1,8 @@
 /**
  * Module dependencies.
  */
-const https = require('https');
-const fs = require('fs');
+// const https = require('https');
+// const fs = require('fs');
 var app = require('./app');
 var debug = require('debug')('childmiles-server:server');
 var http = require('http');
@@ -49,8 +49,6 @@ server.on('listening', onListening);
 // });
 // secureServer.on('error', onError);
 // secureServer.on('listening', onListening);
-
-
 
 
 /**
