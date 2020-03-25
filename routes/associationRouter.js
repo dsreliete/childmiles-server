@@ -2,13 +2,16 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const Association = require('../models/association');
 const authentication = require('../authentication');
+const cors = require('./cors');
+
 
 const associationRouter = express.Router();
 
 associationRouter.use(bodyParser.json());
 
 associationRouter.route('/test')
-.get((req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, (req, res, next) => {
     Association.find()
     .populate('goals')
     .populate('child')
@@ -19,7 +22,7 @@ associationRouter.route('/test')
     })
     .catch(err => next(err));
 })
-.delete((req, res, next) => {
+.delete(cors.corsWithOptions, (req, res, next) => {
     Association.deleteMany()
     .then(response => {
         res.statusCode = 200;
@@ -33,7 +36,8 @@ associationRouter.route('/test')
 
 associationRouter.route('/:childId/goals')
  //retorna lista de tarefas associadas da crianca especifica
-.get(authentication.verifyUser, (req, res, next) => {
+ .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, authentication.verifyUser, (req, res, next) => {
     Association.findOne({'child': req.params.childId })
     .populate('goals')
     .then(association => {
@@ -49,7 +53,7 @@ associationRouter.route('/:childId/goals')
     })
     .catch(err => next(err));
 })
-.post(authentication.verifyUser, authentication.verifyRole, (req, res, next) => { 
+.post(cors.corsWithOptions, authentication.verifyUser, authentication.verifyRole, (req, res, next) => { 
     // permite add task se nao for repetida na lista de goals associadas a crianca senao criar uma nova associacao
     Association.findOne({'child': req.params.childId })
     .then(association => {
@@ -83,11 +87,11 @@ associationRouter.route('/:childId/goals')
     })
     .catch(err => next(err));
 })
-.put((req, res, next) => {
+.put(cors.corsWithOptions, (req, res, next) => {
     res.statusCode = 403;
     res.end('PUT operation not supported on /association');
 })
-.delete(authentication.verifyUser, authentication.verifyRole, (req, res, next) => { //permite deletar as associacoes das tarefas da crianca especificada
+.delete(cors.corsWithOptions, authentication.verifyUser, authentication.verifyRole, (req, res, next) => { //permite deletar as associacoes das tarefas da crianca especificada
     Association.findOne({'child': req.params.childId })
     .then(association => {
         if(association) {
@@ -108,11 +112,12 @@ associationRouter.route('/:childId/goals')
 });
 
 associationRouter.route('/:childId/goals/:goalId')
-.get((req, res, next) => { 
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, (req, res, next) => { 
     res.statusCode = 403;
     res.end(`GET operation not supported on /association/${req.params.childId}/goals/${req.params.goalId}`);
 })
-.post(authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
+.post(cors.corsWithOptions, authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
     Association.findOne({'child': req.params.childId })
     .then(association => {
         if(association) {
@@ -143,11 +148,11 @@ associationRouter.route('/:childId/goals/:goalId')
     })
     .catch(err => next(err));
 })
-.put((req, res, next) => {
+.put(cors.corsWithOptions, (req, res, next) => {
     res.statusCode = 403;
     res.end('PUT operation not supported on /association');
 })
-.delete(authentication.verifyUser, authentication.verifyRole, (req, res, next) => { //permite desassociar tarefa associada a crianca
+.delete(cors.corsWithOptions, authentication.verifyUser, authentication.verifyRole, (req, res, next) => { //permite desassociar tarefa associada a crianca
     Association.findOne({'child': req.params.childId })
     .then(association => {
         if(association) {

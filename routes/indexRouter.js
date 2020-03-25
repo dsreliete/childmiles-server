@@ -7,15 +7,20 @@ const Role = require('../role');
 const User = require('../models/user');
 const Family = require('../models/family');
 const authentication = require('../authentication');
+const cors = require('./cors');
 
 const router = express.Router();
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
+router.route('/')
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
-router.post('/login', passport.authenticate('local'), (req, res) => {
+router.route('/login')
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.post(cors.corsWithOptions, passport.authenticate('local'), (req, res) => {
   const token = authentication.getToken({_id: req.user._id, family: req.user.family});
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
@@ -23,7 +28,9 @@ router.post('/login', passport.authenticate('local'), (req, res) => {
 });
 
 //signup para criar familia nova e usuario admin
-router.post('/signup', (req, res) => {
+router.route('/signup')
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.post(cors.corsWithOptions, (req, res) => {
 
   let familyId = '';
   const newFamily = new Family({ familyName: JSON.stringify(Math.random()), image: '' });
@@ -91,7 +98,9 @@ router.post('/signup', (req, res) => {
     });
 });
 
-router.get('/verifyEmail/:token', (req,res) => {
+router.route('/verifyEmail/:token')
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, (req,res) => {
   if(!req.params.token) return res.status(400).json({message: "We were unable to find a user for this token."});
 
   const decodedToken = decodeToken(req.params.token);
@@ -113,7 +122,9 @@ router.get('/verifyEmail/:token', (req,res) => {
   .catch(err => nexr(err));
 });
 
-router.post('/recoverCredentials', (req, res) => {
+router.route('/recoverCredentials')
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.post(cors.corsWithOptions, (req, res) => {
 
   User.findOne({email: req.body.email})
   .then(user => {
@@ -148,7 +159,9 @@ router.post('/recoverCredentials', (req, res) => {
   })
 });
 
-router.post('/reset/:token', (req, res, next) => {
+router.route('/reset/:token')
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.post(cors.corsWithOptions, (req, res, next) => {
   
   const token = req.params.token; 
   if(!token) return res.status(400).json({message: "It is impossible to find a user for this token."});
@@ -163,7 +176,9 @@ router.post('/reset/:token', (req, res, next) => {
   .catch(err => next(err));
 });
 
-router.post('/updateCredentials/:userId', (req, res) => {
+router.route('/updateCredentials/:userId')
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.post(cors.corsWithOptions,(req, res) => {
   const userId  = req.params.userId;
 
   User.findById(userId)

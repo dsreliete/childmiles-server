@@ -2,13 +2,15 @@ const express = require('express');
 const sgMail = require('@sendgrid/mail');
 const User = require('../models/user');
 const authentication = require('../authentication');
+const cors = require('./cors');
 
 const userRouter = express.Router();
 
 //______________________________________________________________//
 //get all person from DB
 userRouter.route('/test')
-.get((req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, (req, res, next) => {
   User.find()
   .populate('family')
   .then(users => {
@@ -18,15 +20,15 @@ userRouter.route('/test')
   })
   .catch(err => next(err));
 })
-.post((req, res, next) => {
+.post(cors.corsWithOptions, (req, res, next) => {
   res.statusCode = 403;
   res.end('POST operation not supported on /person');
 })
-.put((req, res, next) => {
+.put(cors.corsWithOptions, (req, res, next) => {
   res.statusCode = 403;
   res.end('PUT operation not supported on /person');
 })
-.delete((req, res, next) => {
+.delete(cors.corsWithOptions, (req, res, next) => {
   User.deleteMany()
   .then(response => {
       res.statusCode = 200;
@@ -40,7 +42,8 @@ userRouter.route('/test')
 
 //get users per family or delete all users per family
 userRouter.route('/')
-.get(authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
 
   if(!req.user.family){
     res.statusCode = 500;
@@ -59,7 +62,7 @@ userRouter.route('/')
   })
   .catch(err => next(err));
 })
-.post(authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
+.post(cors.corsWithOptions, authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
   if(!req.user.family) {
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
@@ -113,11 +116,11 @@ userRouter.route('/')
       }
     });
 })
-.put((req, res, next) => {
+.put(cors.corsWithOptions, (req, res, next) => {
   res.statusCode = 403;
   res.end('PUT operation not supported on /users');
 })
-.delete((req, res, next) => {
+.delete(cors.corsWithOptions, (req, res, next) => {
   res.statusCode = 403;
   res.end('DELETE operation not supported on /users');
 });
@@ -125,15 +128,16 @@ userRouter.route('/')
 //_______________________________________________________________________//
 //get specific user from family and update or delete it
 userRouter.route('/:userId')
-.get((req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, (req, res, next) => {
   res.statusCode = 403;
   res.end('GET operation not supported on /:userId');
 })
-.post((req, res, next) => {
+.post(cors.corsWithOptions, (req, res, next) => {
   res.statusCode = 403;
   res.end('POST operation not supported on /:userId');
 })
-.put(authentication.verifyUser, (req, res, next) => {
+.put(cors.corsWithOptions, authentication.verifyUser, (req, res, next) => {
 
   if(req.params.userId != req.user._id) {
     res.statusCode = 500;
@@ -153,7 +157,7 @@ userRouter.route('/:userId')
   })
   .catch(err => next(err));
 })
-.delete(authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
+.delete(cors.corsWithOptions, authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
 
   User.findByIdAndDelete(req.params.userId)
     .then(response => {
@@ -167,13 +171,16 @@ userRouter.route('/:userId')
 
 //_______________________________________________________________________//
 
-userRouter.post('resetPswd/:email', () => {
+userRouter.route('resetPswd/:email')
+.post(cors.corsWithOptions, () => {
 
 })
 
 //______________________________________________________________________________________________//
 
-userRouter.get('/logout', authentication.verifyUser, (req, res, next) => {
+userRouter.route('/logout')
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, authentication.verifyUser, (req, res, next) => {
   const token = authentication.getToken({_id: req.user._id, family: req.user.family});
   res.redirect('/');
 });

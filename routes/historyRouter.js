@@ -3,12 +3,14 @@ const bodyParser = require('body-parser');
 const moment = require('moment');
 const Realization = require('../models/realization');
 const authentication = require('../authentication');
+const cors = require('./cors');
 
 const historyRouter = express.Router();
 
 historyRouter.use(bodyParser.json());
 historyRouter.route('/')
-.get(authentication.verifyUser, (req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, authentication.verifyUser, (req, res, next) => {
     Realization.find()
     .populate('child')
     .populate({ 
@@ -89,22 +91,23 @@ historyRouter.route('/')
     })
     .catch(err => next(err));
 })
-.post((req, res, next) => {
+.post(cors.corsWithOptions, (req, res, next) => {
     res.statusCode = 403;
     res.end('POST operation not supported on /history');
 })
-.put((req, res, next) => {
+.put(cors.corsWithOptions, (req, res, next) => {
     res.statusCode = 403;
     res.end('PUT operation not supported on /history');
 })
-.delete((req, res, next) => {
+.delete(cors.corsWithOptions, (req, res, next) => {
     res.statusCode = 403;
     res.end('DELETE operation not supported on /history');
 });
 
 //------------------------------------------------------------//
 historyRouter.route('/:childId')
-.get(authentication.verifyUser, (req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, authentication.verifyUser, (req, res, next) => {
     Realization.findOne({child: req.params.childId})
     .populate('child')
     .populate({ 
@@ -181,15 +184,15 @@ historyRouter.route('/:childId')
     })
     .catch(err => next(err));
 })
-.post((req, res, next) => {
+.post(cors.corsWithOptions, (req, res, next) => {
     res.statusCode = 403;
     res.end('POST operation not supported on /history/childId');
 })
-.put((req, res, next) => {
+.put(cors.corsWithOptions, (req, res, next) => {
     res.statusCode = 403;
     res.end('PUT operation not supported on /history/childId');
 })
-.delete((req, res, next) => {
+.delete(cors.corsWithOptions, (req, res, next) => {
     res.statusCode = 403;
     res.end('DELETE operation not supported on /history/childId');
 });

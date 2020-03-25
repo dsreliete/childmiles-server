@@ -2,13 +2,15 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const Child = require('../models/child');
 const authentication = require('../authentication');
+const cors = require('./cors');
 
 const childRouter = express.Router();
 
 childRouter.use(bodyParser.json());
 
 childRouter.route('/test')
-.get((req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, (req, res, next) => {
     Child.find()
     .populate('family')
     .then(children => {
@@ -18,7 +20,7 @@ childRouter.route('/test')
     })
     .catch(err => next(err));
 })
-.delete((req, res, next) => {
+.delete(cors.corsWithOptions, (req, res, next) => {
     Child.deleteMany()
     .then(response => {
         res.statusCode = 200;
@@ -29,7 +31,8 @@ childRouter.route('/test')
 });
 //_______________________________________________________________________________//
 childRouter.route('/')
-.get(authentication.verifyUser, (req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, authentication.verifyUser, (req, res, next) => {
 
     if(!req.user.family){
         res.statusCode = 500;
@@ -47,7 +50,7 @@ childRouter.route('/')
     })
     .catch(err => next(err));
 })
-.post(authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
+.post(cors.corsWithOptions, authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
 
     if(!req.user.family){
         res.statusCode = 500;
@@ -83,11 +86,11 @@ childRouter.route('/')
     })
     .catch(err => next(err));
 })
-.put((req, res, next) => {
+.put(cors.corsWithOptions, (req, res, next) => {
     res.statusCode = 403;
     res.end('PUT operation not supported on /child');
 })
-.delete(authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
+.delete(cors.corsWithOptions, authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
 
     if(!req.user.family){
         res.statusCode = 500;
@@ -107,15 +110,16 @@ childRouter.route('/')
 });
 
 childRouter.route('/:childId')
-.get((req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, (req, res, next) => {
     res.statusCode = 403;
     res.end(`GET operation not supported on /child/${req.params.childId}`); 
 })
-.post((req, res, next) => {
+.post(cors.corsWithOptions, (req, res, next) => {
     res.statusCode = 403;
     res.end(`POST operation not supported on /child/${req.params.childId}`); 
 })
-.put(authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
+.put(cors.corsWithOptions, authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
     Child.findByIdAndUpdate(req.params.childId, {
         $set: req.body
     }, { new: true })
@@ -126,7 +130,7 @@ childRouter.route('/:childId')
     })
     .catch(err => next(err));
 })
-.delete(authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
+.delete(cors.corsWithOptions, authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
     Child.findByIdAndDelete(req.params.childId)
     .then(response => {
         res.statusCode = 200;
@@ -135,4 +139,5 @@ childRouter.route('/:childId')
     })
     .catch(err => next(err));
 });
+
 module.exports = childRouter;

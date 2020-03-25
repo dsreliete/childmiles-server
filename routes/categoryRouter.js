@@ -2,13 +2,15 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const Category = require('../models/category');
 const authentication = require('../authentication');
+const cors = require('./cors');
 
 const categoryRouter = express.Router();
 
 categoryRouter.use(bodyParser.json());
 
 categoryRouter.route('/test')
-.get((req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, (req, res, next) => {
     Category.find()
     .then(categories => {
         res.statusCode = 200;
@@ -17,7 +19,7 @@ categoryRouter.route('/test')
     })
     .catch(err => next(err));
 })
-.post((req, res, next) => {
+.post(cors.corsWithOptions, (req, res, next) => {
     Category.create(req.body)
     .then(category => {
         console.log('Category Created ', category);
@@ -27,11 +29,11 @@ categoryRouter.route('/test')
     })
     .catch(err => next(err));
 })
-.put((req, res, next) => {
+.put(cors.corsWithOptions, (req, res, next) => {
     res.statusCode = 403;
     res.end('PUT operation not supported on /child');
 })
-.delete((req, res, next) => {
+.delete(cors.corsWithOptions, (req, res, next) => {
     Category.deleteMany()
     .then(response => {
         res.statusCode = 200;
@@ -45,7 +47,8 @@ categoryRouter.route('/test')
 
 
 categoryRouter.route('/')
-.get(authentication.verifyUser, (req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, authentication.verifyUser, (req, res, next) => {
     
     if(!req.user.family){
         res.statusCode = 500;
@@ -63,7 +66,7 @@ categoryRouter.route('/')
     })
     .catch(err => next(err));
 })
-.post(authentication.verifyUser,(req, res, next) => {
+.post(cors.corsWithOptions, authentication.verifyUser,(req, res, next) => {
     if(!req.user.family){
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json');
@@ -87,11 +90,11 @@ categoryRouter.route('/')
     })
     .catch(err => next(err));
 })
-.put((req, res, next) => {
+.put(cors.corsWithOptions, (req, res, next) => {
     res.statusCode = 403;
     res.end('PUT operation not supported on /child');
 })
-.delete(authentication.verifyUser,(req, res, next) => {
+.delete(cors.corsWithOptions, authentication.verifyUser,(req, res, next) => {
     
     if(!req.user.family){
         res.statusCode = 500;
@@ -111,15 +114,16 @@ categoryRouter.route('/')
 });
 
 categoryRouter.route('/:categoryId')
-.get((req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors, (req, res, next) => {
     res.statusCode = 403;
     res.end(`GET operation not supported on /categories/${req.params.categoryId}`); 
 })
-.post((req, res, next) => {
+.post(cors.corsWithOptions, (req, res, next) => {
     res.statusCode = 403;
     res.end(`POST operation not supported on /categories/${req.params.categoryId}`); 
 })
-.put(authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
+.put(cors.corsWithOptions, authentication.verifyUser, authentication.verifyRole, (req, res, next) => {
     Category.findByIdAndUpdate(req.params.categoryId, {
         $set: req.body
     }, { new: true })
@@ -130,7 +134,7 @@ categoryRouter.route('/:categoryId')
     })
     .catch(err => next(err));
 })
-.delete(authentication.verifyUser, authentication.verifyRole,(req, res, next) => {
+.delete(cors.corsWithOptions, authentication.verifyUser, authentication.verifyRole,(req, res, next) => {
     Category.findByIdAndDelete(req.params.categoryId)
     .then(response => {
         res.statusCode = 200;
