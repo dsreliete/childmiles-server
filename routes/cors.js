@@ -1,6 +1,6 @@
 const cors = require('cors');
 
-const whitelist = ['http://localhost:3000', 'https://localhost:3443', 'https://childmiles-server.herokuapp.com'];
+const whitelist = ['http://localhost:3443', 'https://childmiles-server.herokuapp.com'];
 const corsOptionsDelegate = (req, callback) => {
     let corsOptions;
     console.log(req.header('Origin'));
