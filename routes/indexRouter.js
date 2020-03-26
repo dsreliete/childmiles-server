@@ -39,9 +39,9 @@ router.route('/signup')
     familyId = family._id;
   })
   .catch(err => {
-    res.statusCode = 500;
+    res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.json({err: err, msg: "no family saved"});
+    res.json({success: false, message: "It is not possible to create a new family user"});
     return;
   })
   
@@ -50,9 +50,9 @@ router.route('/signup')
         req.body.password,
         (err, person) => {
             if (err) {
-                res.statusCode = 500;
+                res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
-                res.json({err: err, msg: "It is not possible to create a new user"});
+                res.json({success: false, message: "A user with the given username is already registered"});
             } else {
                 if (req.body.firstname) {
                     person.firstname = req.body.firstname;
@@ -63,36 +63,35 @@ router.route('/signup')
                 if (req.body.email) {
                   person.email = req.body.email;
                 }
-
                 person.role = Role.Admin;
                 person.family = familyId;
                 person.save(err => {
-                    if (err) {
-                        res.statusCode = 500;
-                        res.setHeader('Content-Type', 'application/json');
-                        res.json({err: err, msg: "no person saved"});
-                        return;
-                    }
-                    
-                    const token = authentication.getEmailToken({_id: person._id});
+                if (err) {
+                  res.statusCode = 200;
+                  res.setHeader('Content-Type', 'application/json');
+                  res.json({success: false, message: "A user with the given email is already registered"});
+                  return;
+                }
+                
+                const token = authentication.getEmailToken({_id: person._id});
 
-                    sgMail.setApiKey(process.env.SENDGRID_KEY);
+                sgMail.setApiKey(process.env.SENDGRID_KEY);
 
-                    const link="https://"+req.headers.host+"/verifyEmail/"+token;
-                    const msg = {
-                      to: person.email,
-                      from: process.env.FROM_EMAIL,
-                      subject: 'Account Verification Token',
-                      text: 'Child Miles: an efficient app to manage child tasks!',
-                      html: `<p>Hi ${person.firstname}<p><br><p>Please click on the following <a href="${link}">link</a> to verify your account.</p> 
-                      <br><p>If you did not request this, please ignore this email.</p>`
-                    };
+                const link="https://"+req.headers.host+"/verifyEmail/"+token;
+                const msg = {
+                  to: person.email,
+                  from: process.env.FROM_EMAIL,
+                  subject: 'Account Verification Token',
+                  text: 'Child Miles: an efficient app to manage child tasks!',
+                  html: `<p>Hi ${person.firstname}<p><br><p>Please click on the following <a href="${link}">link</a> to verify your account.</p> 
+                  <br><p>If you did not request this, please ignore this email.</p>`
+                };
 
-                    sgMail.send(msg)
-                    .then(result => {
-                        res.status(200).json({message: 'A verification email has been sent to ' + person.email + '.'});
-                    })
-                    .catch(err => res.status(500).json({message: err.message}));
+                sgMail.send(msg)
+                .then(result => {
+                    res.status(200).json({success: true, message: 'A verification email has been sent to ' + person.email});
+                })
+                .catch(err => res.status(200).json({success: false, message: 'It was not possible to send a verification email!'}));
               });
             }
     });
