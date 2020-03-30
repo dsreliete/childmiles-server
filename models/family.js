@@ -8,7 +8,7 @@ const familySchema = new Schema({
     },
     familyName: {
         type: String,
-        default: ''
+        default: JSON.stringify(Math.random())
     }
 });
 
