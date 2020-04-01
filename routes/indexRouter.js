@@ -73,8 +73,9 @@ router.route('/signup')
                         return;
                     }
                     
-                    const token = authentication.getEmailToken({_id: person._id});
-                    const link="http://"+req.headers.host+"/verifyEmail/"+token;
+                    // const token = authentication.getEmailToken({_id: person._id});
+                    // const link="http://"+req.headers.host+"/verifyEmail/"+token;
+                    const link="http://localhost:3000/verifyEmail/"+person.email;
                     const msg = buildVerificationEmail(person, link)
 
                     sgMail.send(msg)
@@ -88,20 +89,17 @@ router.route('/signup')
 });
 
 //link que o usuario clica para verificar email
-router.route('/verifyEmail/:token')
-.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+router.route('/verifyEmail/:email')
+.options(cors.cors, (req, res) => res.sendStatus(200))
 .get(cors.cors, (req,res, next) => {
-    if(!req.params.token) return res.status(200).json({message: "We were unable to find a user for this token."});
+    if(!req.params.email) return res.status(200).json({success: false, message: "We were unable to find a user with this email."});
 
-    const decodedToken = decodeToken(req.params.token);
-
-    User.findById(decodedToken._id)
+    User.findOne({email: req.params.email})
     .then(user => {
         if(user) {
-
             user.isVerified = true;
             user.save(function (err) {
-                if (err) return res.status(500).json({message:err.message});
+                if (err) return res.status(200).json({ success: false, message: "It is not possible to activate your account."});
 
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
@@ -109,7 +107,9 @@ router.route('/verifyEmail/:token')
             });
         }
     })
-    .catch(err => next(err));
+    .catch(err => {
+        return res.status(200).json({success: false, message: "It is not possible to activate your account." })
+    });
 });
 
 
@@ -141,6 +141,7 @@ router.route('/resendEmail')
     }
 })
 
+// envio de link para mudar senha por email
 router.route('/recoverCredentials')
 .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
 .post(cors.corsWithOptions, (req, res) => {
@@ -175,6 +176,7 @@ router.route('/recoverCredentials')
     })
 });
 
+// mudanca de senha
 router.route('/reset/:token')
 .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
 .post(cors.corsWithOptions, (req, res, next) => {
@@ -192,6 +194,8 @@ router.route('/reset/:token')
     .catch(err => next(err));
     });
 
+
+// retorno da mudanca de senha  com sucesso  
 router.route('/updateCredentials/:userId')
 .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
 .post(cors.corsWithOptions,(req, res) => {
