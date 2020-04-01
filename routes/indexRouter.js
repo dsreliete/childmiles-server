@@ -73,9 +73,10 @@ router.route('/signup')
                         return;
                     }
                     
-                    // const token = authentication.getEmailToken({_id: person._id});
+                    const token = authentication.getEmailToken({_id: person._id});
                     // const link="http://"+req.headers.host+"/verifyEmail/"+token;
-                    const link="http://localhost:3000/verifyEmail/"+person.email;
+                    const link="http://localhost:3000/verifyEmail/"+token;
+                    // const link="http://localhost:3000/verifyEmail/"+person.email;
                     const msg = buildVerificationEmail(person, link)
 
                     sgMail.send(msg)
@@ -89,21 +90,23 @@ router.route('/signup')
 });
 
 //link que o usuario clica para verificar email
-router.route('/verifyEmail/:email')
+router.route('/verifyEmail/:token')
 .options(cors.cors, (req, res) => res.sendStatus(200))
 .get(cors.cors, (req,res, next) => {
-    if(!req.params.email) return res.status(200).json({success: false, message: "We were unable to find a user with this email."});
+    if(!req.params.token) return res.status(200).json({success: false, message: "We were unable to find a user with this token."});
+    
+    const decodedToken = decodeToken(req.params.token);
 
-    User.findOne({email: req.params.email})
+    User.findById(decodedToken._id)
     .then(user => {
         if(user) {
             user.isVerified = true;
             user.save(function (err) {
-                if (err) return res.status(200).json({ success: false, message: "It is not possible to activate your account."});
+                if (err) return res.status(200).json({ success: false, user: user, message: "It is not possible to activate your account."});
 
                 res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
-                res.json({success: true, status: 'Registration Successful!', user: user});  
+                res.json({success: true, user: user, message: 'Registration Successful!'});  
             });
         }
     })
@@ -129,7 +132,7 @@ router.route('/resendEmail')
                 try {
                     sgMail.send(msg) 
                     .then(result => {
-                        return res.status(200).json({success: true, message: 'A new verification email has been sent to ' + person.email});
+                        return res.status(200).json({success: true, message: `A new verification email has been sent to ${person.email}.`});
                     })
                     .catch(err => {throw err})
                 } catch (err) {
