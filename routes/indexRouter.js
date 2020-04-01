@@ -66,22 +66,22 @@ router.route('/signup')
                 person.role = Role.Admin;
                 person.family = familyId;
                 person.save(err => {
-                if (err) {
-                    res.statusCode = 200;
-                    res.setHeader('Content-Type', 'application/json');
-                    res.json({success: false, message: "A user with the given email is already registered"});
-                    return;
-                }
-                
-                const token = authentication.getEmailToken({_id: person._id});
-                const link="http://"+req.headers.host+"/verifyEmail/"+token;
-                const msg = buildVerificationEmail(person, link)
+                    if (err) {
+                        res.statusCode = 200;
+                        res.setHeader('Content-Type', 'application/json');
+                        res.json({success: false, message: "A user with the given email is already registered"});
+                        return;
+                    }
+                    
+                    const token = authentication.getEmailToken({_id: person._id});
+                    const link="http://"+req.headers.host+"/verifyEmail/"+token;
+                    const msg = buildVerificationEmail(person, link)
 
-                sgMail.send(msg)
-                .then(result => {
-                    res.status(200).json({success: true, user: {firstname: person.firstname, lastname: person.lastname, email: person.email}, message: ', a verification email has been sent to ' + person.email});
-                })
-                    .catch(err => res.status(200).json({success: false, user: {firstname: person.firstname, lastname: person.lastname, email: person.email}, message: ', It was not possible to send a verification email! Try again clicking on the link below'}));
+                    sgMail.send(msg)
+                    .then(result => {
+                        res.status(200).json({success: true, message: `${person.firstname} ${person.lastname}, a verification email has been sent to ${person.email}`});
+                    })
+                    .catch(err => res.status(200).json({success: false, message: `${person.firstname} ${person.lastname}. It was not possible to send a verification email! Try again clicking on the link below`}));
                 });
             }
     });
@@ -114,37 +114,27 @@ router.route('/verifyEmail/:token')
 
 
 router.route('/resendEmail')
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
 .post(cors.corsWithOptions, (req, res) => {
     const email = req.body.email
-    const _id = req.body._id
-    if(email && _id) {
-        User.findById(_id)
-        .then(user => {
-            if(user) {
-                if(user.email !== email) {
-                    user.email = email;
-                    
-                    user.save(err => {
-                        if (err) {
-                            return res.status(200).json({success: false, user: {_id: user._id, firstname: user.firstname, lastname: user.lastname, email: user.email}, message: 'It was not possible to send a new verification email! Try again including email and clickig on the button below'});
-                        }
-                    });
-                } 
-                const token = authentication.getEmailToken({_id: user._id});
+    if(email) {
+        User.findOne({email})
+        .then(person => {
+            if(person) {
+                
+                const token = authentication.getEmailToken({_id: person._id});
                 const link="http://"+req.headers.host+"/verifyEmail/"+token;
-                const msg = buildVerificationEmail(user, link);
+                const msg = buildVerificationEmail(person, link);
 
                 try {
                     sgMail.send(msg) 
                     .then(result => {
-                        return res.status(200).json({success: true, user: {_id: user._id, firstname: user.firstname, lastname: user.lastname, email: user.email}, message: 'A new verification email has been sent to ' + user.email});
+                        return res.status(200).json({success: true, message: 'A new verification email has been sent to ' + person.email});
                     })
                     .catch(err => {throw err})
                 } catch (err) {
-                    return res.status(200).json({success: false, user: {_id: user._id, firstname: user.firstname, lastname: user.lastname, email: user.email}, message: 'It was not possible to send a new verification email!'});
+                    return res.status(200).json({success: false, message: 'It was not possible to send a new verification email!'});
                 }
-            } else {
-                return res.status(200).json({success: false, message: "There is no user registered with this given email."})
             }
         })
         .catch(err => res.status(200).json({success: false, message : "It is not possible to send a new email verification. Try to get a new verification email!"}))
@@ -155,113 +145,108 @@ router.route('/recoverCredentials')
 .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
 .post(cors.corsWithOptions, (req, res) => {
 
-  User.findOne({email: req.body.email})
-  .then(user => {
-      console.log(user)
+    User.findOne({email: req.body.email})
+    .then(user => {
 
-      if(!user) return res.status(400).json({message: "We were unable to find a user for this email."});  
+        if(!user) return res.status(400).json({message: "We were unable to find a user for this email."});  
 
-      sgMail.setApiKey(process.env.SENDGRID_KEY);
+        sgMail.setApiKey(process.env.SENDGRID_KEY);
 
-      const token = authentication.getEmailToken({_id: user._id});
-      console.log(token)
+        const token = authentication.getEmailToken({_id: user._id});
+        const link = "https://" + req.headers.host + "/reset/" + token;
+        const msg = {
+            to: user.email,
+            from: process.env.FROM_EMAIL,
+            subject: "Password change request",
+            text: 'Child Miles: an efficient app to manage child tasks!',
+            html: `<p>Hi ${user.username}</p>
+            <p>Please click on the following <a href="${link}">link</a> to reset your password.</p> 
+            <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>`
+        };
 
-      const link = "https://" + req.headers.host + "/reset/" + token;
-      const msg = {
-        to: user.email,
-        from: process.env.FROM_EMAIL,
-        subject: "Password change request",
-        text: 'Child Miles: an efficient app to manage child tasks!',
-        html: `<p>Hi ${user.username}</p>
-        <p>Please click on the following <a href="${link}">link</a> to reset your password.</p> 
-        <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>`
-      };
-
-      sgMail.send(msg)
-      .then(result => {
-        res.status(200).json({message: 'A reset email has been sent to ' + user.email + '.'});
-      })
-      .catch(err => res.status(500).json({message: err.message}));
-  })
-  .catch(err => {
-    return res.status(401).json({ error: err, message: `The email address ${email} is not associated with any account. Double-check your email address and try again.`});
-  })
+        sgMail.send(msg)
+        .then(result => {
+            res.status(200).json({message: 'A reset email has been sent to ' + user.email + '.'});
+        })
+        .catch(err => res.status(500).json({message: err.message}));
+    })
+    .catch(err => {
+        return res.status(401).json({ error: err, message: `The email address ${email} is not associated with any account. Double-check your email address and try again.`});
+    })
 });
 
 router.route('/reset/:token')
 .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
 .post(cors.corsWithOptions, (req, res, next) => {
-  
-  const token = req.params.token; 
-  if(!token) return res.status(400).json({message: "It is impossible to find a user for this token."});
 
-  const decodedToken = decodeToken(token);
+    const token = req.params.token; 
+    if(!token) return res.status(400).json({message: "It is impossible to find a user for this token."});
 
-  User.findById(decodedToken._id)
-  .then(user => {
-    if (!user) return res.status(401).json({message: 'Password reset token is invalid or has expired.'});
-    res.status(200).json({link: `https://${req.headers.host}/updateCredentials/${user._id}`})
-  })
-  .catch(err => next(err));
-});
+    const decodedToken = decodeToken(token);
+
+    User.findById(decodedToken._id)
+    .then(user => {
+        if (!user) return res.status(401).json({message: 'Password reset token is invalid or has expired.'});
+        res.status(200).json({link: `https://${req.headers.host}/updateCredentials/${user._id}`})
+    })
+    .catch(err => next(err));
+    });
 
 router.route('/updateCredentials/:userId')
 .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
 .post(cors.corsWithOptions,(req, res) => {
-  const userId  = req.params.userId;
+    const userId  = req.params.userId;
 
-  User.findById(userId)
-  .then(user => {
-    if (!user) return res.status(401).json({message: 'It is not possible to recover password. Try again!'});
+    User.findById(userId)
+    .then(user => {
+        if (!user) return res.status(401).json({message: 'It is not possible to recover password. Try again!'});
 
-    user.setPassword(req.body.password, (err) => {
-      if (err) return res.status(500).json({message:err.message});
-      
-      user.save(function(err) {
-          if (err) res.status(500).json({message:err.message});
-          console.log(user)
-          
-          const msg = {
-            to: user.email,
-            from: process.env.FROM_EMAIL,
-            subject: "Your password has been changed",
-            text: 'Child Miles: an efficient app to manage child tasks!',
-            html: `<p>Hi ${user.username}</p>
-            <p>This is a confirmation that the password for your account ${user.email} has just been changed.</p>`
-          };
+        user.setPassword(req.body.password, (err) => {
+        if (err) return res.status(500).json({message:err.message});
+        
+        user.save(function(err) {
+            if (err) res.status(500).json({message:err.message});
+            
+                const msg = {
+                    to: user.email,
+                    from: process.env.FROM_EMAIL,
+                    subject: "Your password has been changed",
+                    text: 'Child Miles: an efficient app to manage child tasks!',
+                    html: `<p>Hi ${user.username}</p>
+                    <p>This is a confirmation that the password for your account ${user.email} has just been changed.</p>`
+                };
 
-          sgMail.setApiKey(process.env.SENDGRID_KEY);
-          sgMail.send(msg)
-          .then(result => {
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json');
-            res.json({success: true, status: 'Update password successful!'});  
-          })
-          .catch(err => res.status(500).json({message: err.message}));
-      });
-    });
-  })
-  .catch(err => res.status(500).json({message: err.message}));
+                sgMail.setApiKey(process.env.SENDGRID_KEY);
+                sgMail.send(msg)
+                .then(result => {
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json({success: true, status: 'Update password successful!'});  
+                })
+                .catch(err => res.status(500).json({message: err.message}));
+            });
+        });
+    })
+    .catch(err => res.status(500).json({message: err.message}));
 });
 
 function decodeToken(token) {
-  const base64Url = token.split('.')[1];
-  console.log("base64Url", base64Url);
-  return JSON.parse(atob(base64Url));
+    const base64Url = token.split('.')[1];
+    return JSON.parse(atob(base64Url));
 }
 
 function buildVerificationEmail(user, link) {
-  sgMail.setApiKey(process.env.SENDGRID_KEY);
+    sgMail.setApiKey(process.env.SENDGRID_KEY);
 
-  const msg = {
-    to: user.email,
-    from: process.env.FROM_EMAIL,
-    subject: 'Account Verification Token',
-    text: 'Child Miles: an efficient app to manage child tasks!',
-    html: `<p>Hi ${user.firstname} ${user.lastname} <p><br><p>Please click on the following <a href="${link}">link</a> to verify your account.</p> 
-    <br><p>If you did not request this, please ignore this email.</p>`
-  };
-  return msg;
+    const msg = {
+        to: user.email,
+        from: process.env.FROM_EMAIL,
+        subject: 'Account Verification Token',
+        text: 'Child Miles: an efficient app to manage child tasks!',
+        html: `<p>Hi ${user.firstname} ${user.lastname} <p><br><p>Please click on the following <a href="${link}">link</a> to verify your account.</p> 
+        <br><p>If you did not request this, please ignore this email.</p>`
+    };
+    return msg;
 }
 
 module.exports = router;
