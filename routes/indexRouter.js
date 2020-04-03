@@ -24,7 +24,7 @@ router.route('/login')
   const token = authentication.getToken({_id: req.user._id, family: req.user.family});
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.json({ success: true, token: token, status: 'You are successfully logged in!' });
+  res.json({ success: true, token: token, message: 'You are successfully logged in!' });
 });
 
 //signup para criar familia nova e usuario admin
@@ -74,9 +74,7 @@ router.route('/signup')
                     }
                     
                     const token = authentication.getEmailToken({_id: person._id});
-                    // const link="http://"+req.headers.host+"/verifyEmail/"+token;
-                    const link="http://localhost:3000/verifyEmail/"+token;
-                    // const link="http://localhost:3000/verifyEmail/"+person.email;
+                    const link="http://"+req.headers.host+"/verifyEmail/"+token;
                     const msg = buildVerificationEmail(person, link)
 
                     sgMail.send(msg)
@@ -90,7 +88,7 @@ router.route('/signup')
 });
 
 //link que o usuario clica para verificar email
-router.route('/verifyEmail/:token')
+router.route('/verifyEmailAndAuth/:token')
 .options(cors.cors, (req, res) => res.sendStatus(200))
 .get(cors.cors, (req,res, next) => {
     if(!req.params.token) return res.status(200).json({success: false, message: "We were unable to find a user with this token."});
@@ -145,74 +143,74 @@ router.route('/resendEmail')
 })
 
 // envio de link para mudar senha por email
-router.route('/recoverCredentials')
-.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+router.route('/requestCredentials')
 .post(cors.corsWithOptions, (req, res) => {
+    const email = req.body.email;
 
-    User.findOne({email: req.body.email})
+    User.findOne({email})
     .then(user => {
 
-        if(!user) return res.status(400).json({message: "We were unable to find a user for this email."});  
+        if(!user) return res.status(200).json({success: false, message: "We were unable to find a user with this email."});  
 
         sgMail.setApiKey(process.env.SENDGRID_KEY);
 
         const token = authentication.getEmailToken({_id: user._id});
-        const link = "https://" + req.headers.host + "/reset/" + token;
+        const link = "http://" + req.headers.host + "/resetCredentials/" + token;
         const msg = {
             to: user.email,
             from: process.env.FROM_EMAIL,
             subject: "Password change request",
             text: 'Child Miles: an efficient app to manage child tasks!',
-            html: `<p>Hi ${user.username}</p>
+            html: `<p>Hi ${user.firstname},</p>
             <p>Please click on the following <a href="${link}">link</a> to reset your password.</p> 
             <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>`
         };
 
         sgMail.send(msg)
         .then(result => {
-            res.status(200).json({message: 'A reset email has been sent to ' + user.email + '.'});
+            res.status(200).json({success: true, link: link, message: `${user.firstname} ${user.lastname}, a reset password link has been sent to ${user.email}.`});
         })
-        .catch(err => res.status(500).json({message: err.message}));
+        .catch(err => res.status(200).json({success: false, message: `${user.firstname} ${user.lastname}. It was not possible to send a reset password link by email!`}));
     })
     .catch(err => {
-        return res.status(401).json({ error: err, message: `The email address ${email} is not associated with any account. Double-check your email address and try again.`});
+        return res.status(200).json({ success: false, message: `The email address ${email} is not associated with any account. Double-check your email address and try again.`});
     })
 });
 
-// mudanca de senha
-router.route('/reset/:token')
+// link que abre o form de input para salvar nova senha
+router.route('/resetCredentials/:token')
 .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
-.post(cors.corsWithOptions, (req, res, next) => {
+.get(cors.cors, (req, res, next) => {
 
     const token = req.params.token; 
-    if(!token) return res.status(400).json({message: "It is impossible to find a user for this token."});
+    if(!token) return res.status(200).json({success: false, message: "It is impossible to find a user for this token."});
 
     const decodedToken = decodeToken(token);
 
     User.findById(decodedToken._id)
     .then(user => {
-        if (!user) return res.status(401).json({message: 'Password reset token is invalid or has expired.'});
-        res.status(200).json({link: `https://${req.headers.host}/updateCredentials/${user._id}`})
+        if (!user) return res.status(200).json({sucess: false, message: 'Password reset token is invalid or has expired.'});
+        res.status(200).json({sucess:true, user: user })
     })
-    .catch(err => next(err));
+    .catch(err => {return res.status(200).json({sucess: false, message: 'It is impossible to find a user for this token.'})});
     });
 
 
-// retorno da mudanca de senha  com sucesso  
-router.route('/updateCredentials/:userId')
+// mudanca de senha e retorno com sucesso  
+router.route('/updateCredentials')
 .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
 .post(cors.corsWithOptions,(req, res) => {
-    const userId  = req.params.userId;
+    const userId  = req.body.userId;
 
     User.findById(userId)
     .then(user => {
-        if (!user) return res.status(401).json({message: 'It is not possible to recover password. Try again!'});
+        if (!user) return res.status(200).json({success: false, message: 'The user is not associated with any account.'});
 
         user.setPassword(req.body.password, (err) => {
-        if (err) return res.status(500).json({message:err.message});
+        if (err) return res.status(200).json({sucess: false, message:'It was not possible to update password!'});
         
         user.save(function(err) {
-            if (err) res.status(500).json({message:err.message});
+            if (err) res.status(200).json({success: false, message:'It was not possible to update password!'});
             
                 const msg = {
                     to: user.email,
@@ -230,7 +228,7 @@ router.route('/updateCredentials/:userId')
                     res.setHeader('Content-Type', 'application/json');
                     res.json({success: true, status: 'Update password successful!'});  
                 })
-                .catch(err => res.status(500).json({message: err.message}));
+                .catch(err => res.status(200).json({sucess: false, message: `${user.firstname} ${user.lastname}. It was not possible to send an email saying about your reset password!`}));
             });
         });
     })
@@ -250,8 +248,8 @@ function buildVerificationEmail(user, link) {
         from: process.env.FROM_EMAIL,
         subject: 'Account Verification Token',
         text: 'Child Miles: an efficient app to manage child tasks!',
-        html: `<p>Hi ${user.firstname} ${user.lastname} <p><br><p>Please click on the following <a href="${link}">link</a> to verify your account.</p> 
-        <br><p>If you did not request this, please ignore this email.</p>`
+        html: `<p>Hi ${user.firstname} ${user.lastname}, <p><p>Please click on the following <a href="${link}">link</a> to verify your account.</p> 
+        <p>If you did not request this, please ignore this email.</p>`
     };
     return msg;
 }
