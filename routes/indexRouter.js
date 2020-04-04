@@ -74,7 +74,8 @@ router.route('/signup')
                     }
                     
                     const token = authentication.getEmailToken({_id: person._id});
-                    const link="http://"+req.headers.host+"/verifyEmail/"+token;
+                    // const link="http://"+req.headers.host+"/verifyEmail/"+token;
+                    const link="http://localhost:3000/verifyEmail/"+token;
                     const msg = buildVerificationEmail(person, link)
 
                     sgMail.send(msg)
@@ -124,7 +125,8 @@ router.route('/resendEmail')
             if(person) {
                 
                 const token = authentication.getEmailToken({_id: person._id});
-                const link="http://"+req.headers.host+"/verifyEmail/"+token;
+                // const link="http://"+req.headers.host+"/verifyEmail/"+token;
+                const link="http://localhost:3000/verifyEmail/"+token;
                 const msg = buildVerificationEmail(person, link);
 
                 try {
@@ -144,6 +146,7 @@ router.route('/resendEmail')
 
 // envio de link para mudar senha por email
 router.route('/requestCredentials')
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
 .post(cors.corsWithOptions, (req, res) => {
     const email = req.body.email;
 
@@ -155,7 +158,8 @@ router.route('/requestCredentials')
         sgMail.setApiKey(process.env.SENDGRID_KEY);
 
         const token = authentication.getEmailToken({_id: user._id});
-        const link = "http://" + req.headers.host + "/resetCredentials/" + token;
+        // const link = "http://" + req.headers.host + "/resetCredentials/" + token;
+        const link = "http://localhost:3000/resetCredentials/" + token;
         const msg = {
             to: user.email,
             from: process.env.FROM_EMAIL,
@@ -168,7 +172,7 @@ router.route('/requestCredentials')
 
         sgMail.send(msg)
         .then(result => {
-            res.status(200).json({success: true, link: link, message: `${user.firstname} ${user.lastname}, a reset password link has been sent to ${user.email}.`});
+            res.status(200).json({success: true, user: user, message: `${user.firstname} ${user.lastname}, a reset password link has been sent to ${user.email}.`});
         })
         .catch(err => res.status(200).json({success: false, message: `${user.firstname} ${user.lastname}. It was not possible to send a reset password link by email!`}));
     })
@@ -189,10 +193,10 @@ router.route('/resetCredentials/:token')
 
     User.findById(decodedToken._id)
     .then(user => {
-        if (!user) return res.status(200).json({sucess: false, message: 'Password reset token is invalid or has expired.'});
-        res.status(200).json({sucess:true, user: user })
+        if (!user) return res.status(200).json({success: false, message: 'Password reset token is invalid or has expired.'});
+        res.status(200).json({success:true, user: user })
     })
-    .catch(err => {return res.status(200).json({sucess: false, message: 'It is impossible to find a user for this token.'})});
+    .catch(err => {return res.status(200).json({success: false, message: 'It is impossible to find a user for this token.'})});
     });
 
 
@@ -201,13 +205,14 @@ router.route('/updateCredentials')
 .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
 .post(cors.corsWithOptions,(req, res) => {
     const userId  = req.body.userId;
+    const password = req.body.password;
 
     User.findById(userId)
     .then(user => {
         if (!user) return res.status(200).json({success: false, message: 'The user is not associated with any account.'});
 
-        user.setPassword(req.body.password, (err) => {
-        if (err) return res.status(200).json({sucess: false, message:'It was not possible to update password!'});
+        user.setPassword(password, (err) => {
+        if (err) return res.status(200).json({success: false, message:'It was not possible to update password!'});
         
         user.save(function(err) {
             if (err) res.status(200).json({success: false, message:'It was not possible to update password!'});
@@ -226,13 +231,13 @@ router.route('/updateCredentials')
                 .then(result => {
                     res.statusCode = 200;
                     res.setHeader('Content-Type', 'application/json');
-                    res.json({success: true, status: 'Update password successful!'});  
+                    res.json({success: true, message: 'Update password successful!'});  
                 })
-                .catch(err => res.status(200).json({sucess: false, message: `${user.firstname} ${user.lastname}. It was not possible to send an email saying about your reset password!`}));
+                .catch(err => res.status(200).json({success: false, message: `${user.firstname} ${user.lastname}. It was not possible to send an email saying about your reset password!`}));
             });
         });
     })
-    .catch(err => res.status(500).json({message: err.message}));
+    .catch(err => res.status(200).json({success: false, message: 'The user is not associated with any account.'}));
 });
 
 function decodeToken(token) {
