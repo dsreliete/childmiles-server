@@ -21,10 +21,10 @@ router.route('/')
 router.route('/login')
 .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
 .post(cors.corsWithOptions, passport.authenticate('local'), (req, res) => {
-  const token = authentication.getToken({_id: req.user._id, family: req.user.family});
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'application/json');
-  res.json({ success: true, token: token, message: 'You are successfully logged in!' });
+    const token = authentication.getToken({_id: req.user._id, family: req.user.family});
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    res.json({ success: true, user: req.user, token: token, message: 'You are successfully logged in!' });
 });
 
 //signup para criar familia nova e usuario admin
@@ -39,7 +39,7 @@ router.route('/signup')
         familyId = family._id;
     })
     .catch(err => {
-        res.statusCode = 500;
+        res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
         res.json({success: false, message: "It is not possible to create a new family user"});
         return;
@@ -74,8 +74,8 @@ router.route('/signup')
                     }
                     
                     const token = authentication.getEmailToken({_id: person._id});
-                    // const link="http://"+req.headers.host+"/verifyEmail/"+token;
-                    const link="http://localhost:3000/verifyEmail/"+token;
+                    // const link="http://"+req.headers.host+"/verify-email/"+token;
+                    const link="http://localhost:3000/verify-email/"+token;
                     const msg = buildVerificationEmail(person, link)
 
                     sgMail.send(msg)
@@ -125,8 +125,8 @@ router.route('/resendEmail')
             if(person) {
                 
                 const token = authentication.getEmailToken({_id: person._id});
-                // const link="http://"+req.headers.host+"/verifyEmail/"+token;
-                const link="http://localhost:3000/verifyEmail/"+token;
+                // const link="http://"+req.headers.host+"/verify-email/"+token;
+                const link="http://localhost:3000/verify-email/"+token;
                 const msg = buildVerificationEmail(person, link);
 
                 try {
@@ -158,8 +158,8 @@ router.route('/requestCredentials')
         sgMail.setApiKey(process.env.SENDGRID_KEY);
 
         const token = authentication.getEmailToken({_id: user._id});
-        // const link = "http://" + req.headers.host + "/resetCredentials/" + token;
-        const link = "http://localhost:3000/resetCredentials/" + token;
+        // const link = "http://" + req.headers.host + "/reset-credentials/" + token;
+        const link = "http://localhost:3000/reset-credentials/" + token;
         const msg = {
             to: user.email,
             from: process.env.FROM_EMAIL,
