@@ -107,6 +107,8 @@ router.route('/verifyEmailAndAuth/:token')
                 res.setHeader('Content-Type', 'application/json');
                 res.json({success: true, user: user, message: 'Registration Successful!'});  
             });
+        } else {
+            return res.status(200).json({success: false, message: "It is not possible to activate your account." })
         }
     })
     .catch(err => {
